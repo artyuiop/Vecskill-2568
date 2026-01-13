@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
-  css: ['~/assets/main.css'],
+  css: ['~/assets/main.css', '@mdi/font/css/materialdesignicons.min.css'],
   
   imports: {
     dirs: [
