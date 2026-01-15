@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mariadb:latest
+    environment:
+      MYSQL_DATABASE: MUK
+      MYSQL_ROOT_PASSWORD: 1234
+    volumes:
+      - mysql:/var/lib/mysql
+    ports:
+      - 3307:3306
+  phpmyadmin:
+    image: phpmyadmin:latest
+    environment:
+      PMA_HOST: db
+    depends_on:
+      - db
+    ports:
+      - 8000:80
+  backend:
+    build: ./backend
+    environment:
+      DB_HOST: db
+    depends_on:
+      - db
+    volumes:  
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - 5000:5000
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+volumes:
+  mysql: {}
