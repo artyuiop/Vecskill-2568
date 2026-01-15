@@ -1,0 +1,51 @@
+{
+  "admin": [
+    {
+      "name": "หมวดหมู่หลัก",
+      "icon": "mdi mdi-view-dashboard-outline",
+      "children": [
+        { "name": "หน้าหลัก", "path": "/admin" },
+        { "name": "สรุปผลการประเมินรายกรรมการ", "path": "/admin/evaluation-sumary" },
+        { "name": "ติดตามสถานะการประเมิน", "path": "/admin/progress-tracking" },
+        { "name": "รายงานผลการประเมินรายบุคคล", "path": "/admin/report-summary" }
+      ]
+    },
+    {
+      "name": "หมวดหมู่ประเมิน",
+      "icon": "mdi mdi-target",
+      "children": [
+        { "name": "เพิ่มตัวชี้วัด", "path": "/admin/indicators" },
+        { "name": "กำหนดระดับคะแนน", "path": "/admin/levels" },
+        { "name": "มอบหมายงาน", "path": "/admin/assignment" }
+      ]
+    },
+    {
+      "name": "หมวดหมู่จัดการ",
+      "icon": "mdi mdi-playlist-edit",
+      "children": [
+        { "name": "จัดการหัวข้อการประเมิน", "path": "/admin/topic-evaluation" },
+        { "name": "จัดการผู้รับการประเมิน", "path": "/admin/evaluatee" },
+        { "name": "จัดการกรรมการผู้ประเมิน", "path": "/admin/evaluator" }
+      ]
+    }
+  ],
+  "evaluator": [
+    {
+      "name": "Main",
+      "children": [
+        { "name": "หน้าหลัก", "path": "/evaluator", "icon": "mdi mdi-view-dashboard" },
+        { "name": "ผลลัพธ์การประเมิน", "path": "/evaluator/summary", "icon": "mdi mdi-view-dashboard" }
+      ]
+    }
+  ],
+  "user": [
+    {
+      "name": "Main",
+      "children": [
+        { "name": "เพิ่มข้อมูลในตัวชี้วัด", "path": "/user", "icon": "mdi mdi-view-dashboard" },
+        { "name": "ความคืบหน้า", "path": "/user/progress", "icon": "mdi mdi-progress-check" },
+        { "name": "ความคิดเห็นกรรมการ", "path": "/user/committee-comments", "icon": "mdi mdi-comment-account" }
+      ]
+    }
+  ]
+}
