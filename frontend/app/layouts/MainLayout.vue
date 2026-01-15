@@ -8,12 +8,6 @@
 
         <!-- Main Content -->
         <div class=" p-12 shadow-sm mx-6 mt-6 mb-2 rounded-[10px] bg-white">
-          <!-- <DialogAlert
-            :title="alert.title"
-            :status="alert.status"
-            :show="alert.show"
-            :toast="alert.toast"
-          /> -->
           <slot></slot>
         </div>
       </div>
@@ -44,7 +38,7 @@ const route = useRoute()
 
 const currentMenu = computed(() => {
     if(route.path.startsWith('/admin')) return menuData.admin
-    if(route.path.startsWith('/user')) return menuData.user
+    if(route.path.startsWith('/evaluatee')) return menuData.evaluatee
     return menuData.evaluator
 })
 </script>

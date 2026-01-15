@@ -38,13 +38,13 @@
       ]
     }
   ],
-  "user": [
+  "evaluatee": [
     {
       "name": "Main",
       "children": [
-        { "name": "เพิ่มข้อมูลในตัวชี้วัด", "path": "/user", "icon": "mdi mdi-view-dashboard" },
-        { "name": "ความคืบหน้า", "path": "/user/progress", "icon": "mdi mdi-progress-check" },
-        { "name": "ความคิดเห็นกรรมการ", "path": "/user/committee-comments", "icon": "mdi mdi-comment-account" }
+        { "name": "เพิ่มข้อมูลในตัวชี้วัด", "path": "/evaluatee", "icon": "mdi mdi-view-dashboard" },
+        { "name": "ความคืบหน้า", "path": "/evaluatee/progress", "icon": "mdi mdi-progress-check" },
+        { "name": "ความคิดเห็นกรรมการ", "path": "/evaluatee/committee-comments", "icon": "mdi mdi-comment-account" }
       ]
     }
   ]
