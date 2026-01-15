@@ -2,9 +2,9 @@ const mysql = require('mysql2/promise')
 require('dotenv').config()
 
 const db = mysql.createPool({
-    host: process.env.HOST || 'localhost',
+    host: process.env.HOST || 'db',
     user: process.env.USER || 'root',
-    password: process.env.PW || '',
+    password: process.env.PW || '1234',
     database: process.env.DB_NAME || 'estimate01',
     dateStrings: true
 })
