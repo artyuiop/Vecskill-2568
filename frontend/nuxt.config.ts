@@ -9,7 +9,8 @@ export default defineNuxtConfig({
   
   imports: {
     dirs: [
-      'composables/api'
+      'composables/api',
+      'composables/function',
     ]
   },
 
@@ -17,5 +18,7 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss()
     ]
-  }
+  },
+
+  modules: ['@pinia/nuxt']
 })
