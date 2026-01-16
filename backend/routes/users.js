@@ -1,12 +1,12 @@
 const { createUser, listUserID, listUserRole, getDetailMe, changeUser } = require('../controllers/users')
-const { AuthCheck } = require('../middleware/auth')
+const { AuthCheck, RoleCheck } = require('../middleware/auth')
 
 const router = require('express').Router()
 
-router.post('/',AuthCheck, createUser)
-router.get('/getUserRole/', listUserRole)
-router.get('/:id', listUserID)
-router.get('/detail/:id', getDetailMe)
-router.put('/:id', changeUser)
+router.post('/',AuthCheck,RoleCheck(['admin']), createUser)
+router.get('/getUserRole',AuthCheck,RoleCheck(['admin']), listUserRole)
+router.get('/:id',AuthCheck,RoleCheck(['admin']), listUserID)
+router.get('/detail',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), getDetailMe)
+router.put('/:id',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), changeUser)
 
 module.exports = router

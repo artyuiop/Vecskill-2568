@@ -1,22 +1,43 @@
 const db = require('../config/db')
 const { send, err } = require('../utils/help')
 
-// เพิ่มตัวชี้วัด
-exports.AddIndic = async(req , res) => {
+// เพิ่มตัวชี้วัด && แก้ไข
+exports.AddOrUpdateIndic = async (req, res) => {
     try {
-        const { eval_id ,name , description, weight , type} = req.body
+        const { id } = req.params
+        const { eval_id, name, description, weight, type } = req.body
+
+        if (![name, eval_id, description, weight, type].every(Boolean)) return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403)
+        if (!['score', 'boolean'].includes(type)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
+
+        // evalCheck
         const [Eval] = await db.query('SELECT id FROM evaluations WHERE id = ?', [eval_id])
 
-        if(![name, eval_id, description , weight , type].every(Boolean)) return send(res , {msg: "กรุณากรอกข้อมูลให้ครบ"}, 403)
-        if(!['score', 'boolean'].includes(type)) return send(res, {msg: "type ไม่ถูกต้อง!"}, 403)
+        if (Eval.length === 0) return send(res, { msg: "ไม่มีรอบการประเมินนี้!!" }, 403)
 
-        if(!Eval) return send(res , {msg: "ไม่มีรอบการประเมินนี้!!"}, 403)
+        if (id) {
+            // UPDATE
+            const [indic] = await db.query('SELECT id FROM indicators WHERE id = ?', [id])
+            if (indic.length === 0) return send(res, { msg: "ไม่พบตัวชี้วัด!" }, 403)
 
-        await db.query('INSERT INTO indicators(eval_id , name , description , weight , type) VALUES (? , ? , ?, ? ,?)',[eval_id , name , description, weight , type])
-        send(res, {msg: "เพิ่่มตัวชี้วัดสำเร็จ"})
-    } catch(e) {
-        err(res ,e)
-    } 
+            await db.query(
+                'UPDATE indicators SET eval_id = ?, name = ?, description = ?, weight = ?, type = ? WHERE id = ?',
+                [eval_id, name, description, weight, type, id]
+            )
+
+            send(res, { msg: "แก้ไขตัวชี้วัดสำเร็จ" })
+        } else {
+            // INSERT
+            await db.query(
+                'INSERT INTO indicators (eval_id, name, description, weight, type) VALUES (?, ?, ?, ?, ?)',
+                [eval_id, name, description, weight, type]
+            )
+
+            send(res, { msg: "เพิ่มตัวชี้วัดสำเร็จ" })
+        }
+    } catch (e) {
+        err(res, e)
+    }
 }
 
 // ดูตัวชี้วัดตามรอบประเมิน
@@ -30,25 +51,6 @@ exports.ListIndic = async(req , res) => {
     }
 }
 
-exports.changeInc = async(req, res) => {
-    try {
-        const { id } = req.params
-        const {eval_id , name , description , weight, type} = req.body
-        const [Eval] = await db.query('SELECT id FROM evaluations WHERE id = ?', [eval_id])
-        const [Indic] = await db.query('SELECT id FROM indicators WHERE id = ?', [id])
-
-        if(![name, eval_id, description , weight , type].every(Boolean)) return send(res , {msg: "กรุณากรอกข้อมูลให้ครบ"}, 403)
-        if(['score', 'boolean'].includes(type)) return send(res, {msg: "type ไม่ถูกต้อง!"}, 403)
-        if(!Indic) return send(res, {msg: "ไม่มีตัวชี้วัด!!"}, 403)
-        if(!Eval) return send(res , {msg: "ไม่มีรอบการประเมินนี้!!"}, 403)
-        
-        await db.query('UPDATE indicators SET eval_id = ? , name = ? , description = ? , weight = ? , type = ?', [eval_id , name , description , weight ,type])
-
-        send(res, {msg: "แก้ไขตัวชี้วัดสำเร็จ"})
-    } catch(e) {
-        err(res, e)
-    }
-}
 
 //  Levels
 exports.AddLevels = async(req ,res) => {
@@ -56,10 +58,18 @@ exports.AddLevels = async(req ,res) => {
         const { indic_id } = req.params
 
         const [Indic] = await db.query('SELECT * FROM indicators WHERE id = ?', [indic_id])
+        const [Level] = await db.query('SELECT indic_id FROM levels WHERE indic_id  = ?', [indic_id])
+
+        const indicator = Indic[0]
+
+        // console.log(Level)
+
+        if(Level.length > 0) return send(res, {msg: "มีตัวชี้วัดอยู่แล้ว!"}, 403)
         
-        if(!Indic) return send(res, {msg: "ไม่มีตัวชี้วัด"}, 403)
-        if(Indic.type !== 'score') return send(res, {msg: "type ไม่ถูกต้อง"}, 403)
+        if(!indicator) return send(res, {msg: "ไม่มีตัวชี้วัด"}, 403)
+        if(indicator.type !== 'score') return send(res, {msg: "type ไม่ถูกต้อง"}, 403)
         
+        // Loop 1-4 Levels
         for(const {level , description} of req.body) {
             if(!level || level < 1 || level > 4) return send(res, {msg: "ระดับคะแนนต้อง 1-4"}, 403)
             await db.query('INSERT INTO levels (indic_id , level , description) VALUES (?,?,?)', [indic_id , level , description])
@@ -71,26 +81,42 @@ exports.AddLevels = async(req ,res) => {
     }
 }
 
-exports.ListLevels = async(req ,res) => {
+exports.ListLevels = async (req, res) => {
     try {
         const { indic_id } = req.params
-        const [rows] = await db.query('SELECT * FROM indicators WHERE indic_id = ?', [indic_id])
-        send(res , rows)
-    } catch(e) {
-        err(res ,e)
+
+        const [levels] = await db.query('SELECT level , description FROM levels WHERE indic_id = ? ORDER BY level ASC',[indic_id])
+
+        if (levels.length === 0) {
+            return send(res, { msg: "ไม่พบระดับคะแนน" }, 404)
+        }
+
+        send(res, {
+            indicator: +indic_id,
+            levels: levels
+        })
+
+    } catch (e) {
+        err(res, e)
     }
 }
 
-exports.listLevelID = async(req ,res) => {
+exports.changeLevels = async (req, res) => {
     try {
-        const { level_id } = req.params
+        const { indic_id } = req.params
 
-        const [row] = await db.query('SELECT * FROM indicators WHERE id = ?', [level_id])
-        send(res ,row)
-    } catch(e) {
-        err(res , e)
+        for (const { level, description } of req.body) {
+            await db.query('UPDATE levels SET description = ? WHERE indic_id = ? AND level = ?',
+                [description, indic_id, level]
+            )
+        }
+
+        send(res, { msg: "แก้ไขสเกลคะแนนสำเร็จ!!" })
+    } catch (e) {
+        err(res, e)
     }
 }
+
 
 // evidence
 exports.AddEvidence = async(req , res) => {

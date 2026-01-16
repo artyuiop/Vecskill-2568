@@ -26,11 +26,9 @@ exports.login = async(req, res) => {
         const {username , password} = req.body
 
         if(![username, password].every(Boolean)) return send(res, {msg: "กรุณากรอกข้อมูลให้ครบ"}, 403)
-            
-        console.log(username);
+        // console.log(username);
         
         const [row] = await db.query('SELECT id, username, password, role FROM users WHERE username = ?', [username])
-
         const user = row[0]
         
         if(!user) return send(res, {msg: "ไม่มีชื่อผู้ใช้"}, 403)
