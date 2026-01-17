@@ -14,5 +14,4 @@ export default defineNuxtRouteMiddleware((to, from) => {
     if(!auth.token && to.path.startsWith('/admin')){
         createErrorPage();
     }
-    
 })

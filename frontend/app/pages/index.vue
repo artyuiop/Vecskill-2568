@@ -17,6 +17,6 @@
 </template>
 
 <script setup>
-const formRegister = ({})
-const formLogin = ({})
+const formRegister = ref({})
+const formLogin = ref({})
 </script>

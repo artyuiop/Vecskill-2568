@@ -10,6 +10,8 @@ export const useValidate = () => {
 
 }
 
-export const useRef = () => {
-  
-}
+export const resetForm = (formRef) => {
+  Object.keys(formRef).forEach(key => {
+    delete formRef[key];
+  });
+};

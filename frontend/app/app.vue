@@ -10,12 +10,11 @@
 </template>
 
 <script setup>
-import { dataStore } from './stores/dataStore';
-const data = dataStore()
+import { dataStore } from '#imports';
 
-// console.log = function() {} 
+const data = dataStore();
 
-onMounted(async () => {
-  await data.fetchEvaluatee();
+onMounted(() => {
+  data.fetchAllData()
 })
 </script>

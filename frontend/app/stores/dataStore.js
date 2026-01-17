@@ -1,33 +1,37 @@
 import { defineStore } from "pinia";
 
-export const dataStore = defineStore('data', {
-    state: () => ({
-        data_evaluatee: [],
-        data_evaluator: [],
-        data_evaluation: [],
-        data_assignments: [],
-        data_indicator: [],
-    }),
-    actions: {
-        async fetchEvaluatee(){
-            const res = await Fetch('/api/user/?role=evaluatee')
-            this.data_evaluatee = res
-        },
-        async fetchEvaluator(){
-            const res = await Fetch('/api/user/?role=evaluator')
-            this.data_evaluator = res
-        },
-        async fetchEvaluation(){
-            const res = await Fetch('/api/evaluation')
-            this.data_evaluation = res
-        },
-        async fetchAssignments(){
-            const res = await Fetch('/api/assignments')
-            this.data_assignments = res
-        },
-        async fetchIndicator(){
-            const res = await Fetch('/api/indicator')
-            this.data_indicator = res
+export const dataStore = defineStore("data", {
+  state: () => ({
+    evaluatee: [],
+    evaluator: [],
+    evaluation: [],
+    assignments: [],
+    indicator: [],
+    isLoaded: false, // ตัวช่วยเช็คสถานะ
+  }),
+  actions: {
+    async fetchAllData(force = false){
+        if(this.isLoaded && !force) return;
+
+        try{
+            const [evaluatee, evaluator, evaluation, assignments, indicator] = await Promise.all([
+                    Fetch('/api/users/getUserRole?role=evaluatee'),
+                    Fetch('/api/users/getUserRole?role=evaluator'),
+                    Fetch('/api/evaluations'),
+                    Fetch('/api/assignments'),
+                    Fetch('/api/indicator')
+            ])
+
+            this.evaluatee = evaluatee;
+            this.evaluator = evaluator;
+            this.evaluation = evaluation;
+            this.assignments = assignments;
+            this.indicator = indicator;
+
+            this.isLoaded = true;
+        }catch(e){
+            return showAlert('ไม่สามารถแสดงข้อมูลได้', 'error')
         }
     }
-})
+  },
+});
