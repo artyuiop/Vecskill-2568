@@ -1,5 +1,6 @@
 const {  ListIndic, AddLevels, ListLevels, AddEvidence, changeLevels, delEvid, AddOrUpdateIndic } = require('../controllers/indicators')
 const { AuthCheck, RoleCheck } = require('../middleware/auth')
+const { upload } = require('../middleware/upload')
 const router = require('express').Router()
 
 
@@ -16,7 +17,7 @@ router.put('/levels/:indic_id',AuthCheck,RoleCheck(['admin']), changeLevels)
 // evidence
 
 // อย่าลืมเอา upload มาใส่
-router.post('/evidence/:indic_id',AuthCheck,RoleCheck(['admin', 'evaluator']), AddEvidence)
+router.post('/evidence/:indic_id',AuthCheck,RoleCheck(['admin', 'evaluator']),upload.single('file'), AddEvidence)
 router.delete('/evidence/:evid_id',AuthCheck,RoleCheck(['admin', 'evaluator']), delEvid)
 
 
