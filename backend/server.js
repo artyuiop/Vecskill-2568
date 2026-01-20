@@ -9,7 +9,7 @@ const auth = require('./routes/auth')
 const evaluations = require('./routes/evaluations')
 const user = require('./routes/users')
 const indicators = require('./routes/indicators')
-// const assignments = require('./routes/assignments')
+const assignments = require('./routes/assignments')
 
 // middleware
 app.use(express.json())
@@ -22,7 +22,7 @@ app.use('/api/auth', auth)
 app.use('/api/evaluations', evaluations)
 app.use('/api/users', user)
 app.use('/api/indicators', indicators)
-// app.use('/api/assignments', assignments)
+app.use('/api/assignments', assignments)
 
 // Page NotFound
 app.use((req ,res) => {
@@ -31,4 +31,3 @@ app.use((req ,res) => {
 
 
 app.listen(5000, () => console.log('Server Runing! On Port 5000'))
-// 9.4 การนำเสนอภายในเวลาที่กำหนด (1 คะแนน)
