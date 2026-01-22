@@ -48,19 +48,21 @@ exports.delAssign = async(req ,res) => {
 
 exports.ListAssign = async(req, res) => {
     try {
-        const {id: uid, role} = req.user
+        const user = req.user
         
-        const [rows] = await db('assignments as a')
+        const rows = await db('assignments as a')
             .join('users as u', 'a.evaluatee_id', 'u.id')
             .join('users as ut', 'a.evaluator_id', 'ut.id')
             .join('evaluations as e', 'a.eval_id', 'e.id')
-            .where(role === 'evaluator' ? {'a.evaluator_id': uid} : {'a.evaluatee_id': uid})
+            .modify(q => {
+                if(user.role === 'evaluator') q.where('a.evaluator_id', user.id)
+                else if(user.role === 'evaluatee') q.where('a.evaluatee_id', user.id)
+            })
             .select(
                 'a.id as assign_id', 'a.position', 'a.evaluatee_id', 
                 fn('u', 'evaluatee_name'), 'a.evaluator_id', 
                 fn('ut', 'evaluator_name'), 'e.id as eval_id', 'e.title'
             )
-        
         send(res, rows)
     } catch(e) {
         err(res, e)
