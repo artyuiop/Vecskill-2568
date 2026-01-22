@@ -1,4 +1,4 @@
-const { createUser, listUserID, listUserRole, getDetailMe, changeUser } = require('../controllers/users')
+const { createUser, listUserID, listUserRole, getDetailMe, changeUser, deluser } = require('../controllers/users')
 const { AuthCheck, RoleCheck } = require('../middleware/auth')
 
 const router = require('express').Router()
@@ -18,5 +18,7 @@ router.get('/detail',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), g
 // แก้ไขโปรไฟล์์หรือผู้ใช่งาน
 router.put('/:id',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), changeUser)
 
+// ลบผู้ใมช้งาน
+router.delete('/:id', deluser)
 
 module.exports = router

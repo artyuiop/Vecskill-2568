@@ -68,3 +68,19 @@ exports.changeUser = async (req, res) => {
     err(res, e)
   }
 }
+
+
+exports.deluser = async(req ,res) => {
+  try {
+    const {id} = req.params
+
+    const user = await db('users').where({id}).first()
+
+    if(!user) return send(res, {msg: "ไม่พบผู้ใช้งาน"})
+    await db('users').where({ id }).del()
+  
+    send(res, { msg: "ลบสำเร็จ!!" })
+  }catch(e) {
+    err(res ,e)
+  } 
+}
