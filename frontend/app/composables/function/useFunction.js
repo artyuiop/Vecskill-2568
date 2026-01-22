@@ -6,12 +6,10 @@ export const CloseModal = (id) => {
   document.getElementById(id).close();
 };
 
-export const useValidate = () => {
-
-}
+export const useValidate = () => {};
 
 export const resetForm = (formRef) => {
-  Object.keys(formRef).forEach(key => {
+  Object.keys(formRef).forEach((key) => {
     delete formRef[key];
   });
 };

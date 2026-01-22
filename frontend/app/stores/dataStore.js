@@ -19,7 +19,7 @@ export const dataStore = defineStore("data", {
                     Fetch('/api/users/getUserRole?role=evaluator'),
                     Fetch('/api/evaluations'),
                     Fetch('/api/assignments'),
-                    Fetch('/api/indicator')
+                    Fetch('/api/indicators')
             ])
 
             this.evaluatee = evaluatee;

@@ -1,5 +1,6 @@
 <template>
-  <button class="badge" :class="'badge-' + color + ' ' + 'badge-' + type">
+  <button class="badge badge-soft" :class="color">
+    <i :class="icon"></i>
     {{ title }}
   </button>
 </template>
@@ -8,6 +9,6 @@
 defineProps({
   title: String,
   color: String,
-  type: String,
+  icon: String
 });
 </script>

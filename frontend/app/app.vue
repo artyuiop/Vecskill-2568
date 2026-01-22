@@ -11,7 +11,6 @@
 
 <script setup>
 import { dataStore } from '#imports';
-
 const data = dataStore();
 
 onMounted(() => {

@@ -21,8 +21,6 @@ export const authStore = defineStore('auth', {
             navigateTo('/')
         },
         async getProfile(){
-            // const token = this.token
-            // const user = jwtDecode(token)
             const res = await Fetch(`/api/users/detail/`)
             this.profile = res
         }

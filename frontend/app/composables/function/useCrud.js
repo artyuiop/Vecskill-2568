@@ -22,8 +22,6 @@ export const Update = async (endpointID, formUpdate) => {
 export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
   try {
     const res = await api.post(endpoint, formInsert);
-    // console.log(res.data);
-
     if (IsloginRegister === "login") {
       const auth = authStore();
       const token = res.data.token;
@@ -46,10 +44,12 @@ export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
       return showAlert("สมัครสมาชิก", "success");
     }
 
-    return showAlert("ดำเนินการสำเร็จ", "success");
+    showAlert("ดำเนินการสำเร็จ", "success");
+    return res.data
   } catch (e) {
     console.log(e)
-    return showAlert(e.response.data.msg, "error");
+    const error = e.response.data.msg || e.response.data.message
+    return showAlert(error, "error");
   }
 };
 

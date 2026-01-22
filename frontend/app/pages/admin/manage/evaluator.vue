@@ -1,15 +1,35 @@
 <template>
-    <button @click="openModal('create')">add</button>
+    <UiHeader title="จัดการกรรมการผู้ประเมิน" description="manage evaluator">
+        <UiButton title="เพิ่มข้อมูล" color="btn-primary" @click="openModal('create')" />
+    </UiHeader>
+
     <UiTable :cols="cols" :rows="data_users">
         <template #action="{ row }">
             <div class="space-x-2">
-                <UiButton title="แก้ไข" color="btn-warning" @click="openModal('edit', row)" />
-                <UiButton title="ลบ" color="btn-error" @click="Delete('/api/')" />
+                <UiBadge icon="mdi mdi-account-edit" title="แก้ไข" color="badge-warning"
+                    @click="openModal('edit', row)" />
+                <UiBadge icon="mdi mdi-delete" title="ลบ" color="badge-error" @click="Delete('/api/')" />
+            </div>
+        </template>
+        <template #role="{ row }">
+            <UiBadge color="badge-primary" icon="mdi mdi-account" title="กรรมการผู้ประเมิน" />
+        </template>
+        <template #fullname="{ row }">
+            <div class="flex items-center gap-3">
+                <div class="avatar avatar-online avatar-placeholder">
+                    <div class="w-9 rounded-[10px] bg-neutral text-neutral-content uppercase">
+                        {{ row.username[0] }}
+                    </div>
+                </div>
+                <div>
+                    <div class="font-bold">{{ row.fname + ' ' + row.lname }}</div>
+                    <div class="text-sm opacity-50">{{ row.username }}</div>
+                </div>
             </div>
         </template>
     </UiTable>
 
-    <UiModal modal_id="modal_evaluator" :title="mode === 'create' ? 'เพิ่มข้อมูล': 'แก้ไขข้อมูล'">
+    <UiModal modal_id="modal_evaluator" :title="mode === 'create' ? 'เพิ่มข้อมูล' : 'แก้ไขข้อมูล'">
         <div class="grid grid-cols-2 gap-5">
             <UiInput label="ชื่อ" type="text" v-model="formRef.fname" />
             <UiInput label="นามสกุล" type="text" v-model="formRef.lname" />
@@ -21,7 +41,7 @@
             <button class="btn btn-primary" @click="handleSubmit">ตกลง</button>
         </div>
     </UiModal>
-    
+
 </template>
 
 <script setup>
@@ -32,10 +52,8 @@ const store = dataStore();
 const endpoint = '/api/users'
 
 const cols = [
-    { field: "id", label: "ลำดับ" },
-    { field: "fname", label: "ชื่อ" },
-    { field: "lname", label: "นามสกุล" },
-    { field: "username", label: "ชื่อผู้ใช้งาน" },
+    { field: "fullname", label: "ชื่อ-นามสกุล" },
+    { field: "role", label: "ตำแหน่ง" },
     { field: "action", label: "จัดการ" },
 ];
 
@@ -53,10 +71,10 @@ const formRef = ref({
 const openModal = (type, row = null) => {
     mode.value = type
 
-    if(type === 'create'){
+    if (type === 'create') {
         resetForm(formRef.value)
         formRef.value.role = "evaluator"
-    }else{
+    } else {
         formRef.value = { ...row }
     }
 
@@ -64,9 +82,9 @@ const openModal = (type, row = null) => {
 }
 
 const handleSubmit = async () => {
-    if(mode.value === 'create') {
+    if (mode.value === 'create') {
         await Insert(endpoint, formRef.value)
-    }else{
+    } else {
         await Update(`${endpoint}/${formRef.value.id}`, formRef.value)
     }
     // console.log(formRef.value)

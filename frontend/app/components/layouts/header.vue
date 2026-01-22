@@ -44,10 +44,9 @@
 const formUpdateProfile = ref({})
 const auth = authStore()
 
-console.log(auth.profile)
-
-
 onMounted(() => {
   auth.getProfile()
+  formUpdateProfile.value = auth.profile
+  console.log(auth.profile)
 })
 </script>

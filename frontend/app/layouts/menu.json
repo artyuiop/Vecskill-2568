@@ -1,7 +1,7 @@
 {
   "admin": [
     {
-      "name": "หมวดหมู่หลัก",
+      "name": "Main",
       "icon": "mdi mdi-view-dashboard-outline",
       "children": [
         { "name": "หน้าหลัก", "path": "/admin" },
@@ -11,16 +11,15 @@
       ]
     },
     {
-      "name": "หมวดหมู่ประเมิน",
+      "name": "Assessment",
       "icon": "mdi mdi-target",
       "children": [
-        { "name": "เพิ่มตัวชี้วัด", "path": "" },
-        { "name": "กำหนดระดับคะแนน", "path": "" },
-        { "name": "มอบหมายงาน", "path": "" }
+        { "name": "เพิ่มตัวชี้วัด", "path": "/admin/assessments/indicator" },
+        { "name": "มอบหมายงาน", "path": "/admin/assessments/assignment" }
       ]
     },
     {
-      "name": "หมวดหมู่จัดการ",
+      "name": "Manage",
       "icon": "mdi mdi-playlist-edit",
       "children": [
         { "name": "จัดการหัวข้อการประเมิน", "path": "/admin/manage/evaluation" },
