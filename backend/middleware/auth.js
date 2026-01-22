@@ -8,8 +8,11 @@ exports.AuthCheck  = async(req ,res , next) => {
         if(!header) return send(res, {msg: "No Token"}, 403)
 
         const token = header.split(' ')[1]
+        // console.log(token)
+        // debugger
         const decode = jwt.verify(token , process.env.KEY)
 
+        
         req.user = decode.payload
 
         console.log(req.user);
@@ -21,11 +24,10 @@ exports.AuthCheck  = async(req ,res , next) => {
 
 exports.RoleCheck = (role) => async(req ,res, next) => {
     try {
-        const uid = req.user.id
-        const [user] = await db.query('SELECT id , role FROM users WHERE id = ?', [uid])
+        const user = await db('users').where({id: req.user.id}).first()
         if(!user || !role.includes(user.role)) return send(res, {msg: "ไม่มีสิทเข้าถึงข้อมูล!"}, 400)
         next()
     }catch(e) {
         err(res, e)
     }
-} 
+}
