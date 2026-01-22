@@ -12,7 +12,6 @@ exports.AddOrUpdateIndic = async (req, res) => {
 
     if (!['score', 'boolean'].includes(type)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
     
-
     // evalCheck
     const Eval = await db('evaluations').where({ id: eval_id }).first()
     if (!Eval) return send(res, { msg: "ไม่มีรอบการประเมินนี้!!" }, 403)
@@ -27,8 +26,8 @@ exports.AddOrUpdateIndic = async (req, res) => {
       send(res, { msg: "แก้ไขตัวชี้วัดสำเร็จ" })
     } else {
       // INSERT
-      await db('indicators').insert({eval_id, name, description,weight,type})
-      send(res, { msg: "เพิ่มตัวชี้วัดสำเร็จ" })
+      const [id] = await db('indicators').insert({eval_id, name, description,weight,type}).returning('id')
+      send(res, { msg: "เพิ่มตัวชี้วัดสำเร็จ" , id})
     }
   } catch (e) {
     err(res, e)
