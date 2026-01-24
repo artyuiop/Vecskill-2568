@@ -1,12 +1,13 @@
 <template>
-    <UiHeader title="มอบหมายการประเมิน">
-        <UiButton title="เพิ่มข้อมูล" color="btn-primary" @click="openModal('create')"/>
+    <UiHeader title="มอบหมายการประเมิน" description="Assign assessment">
+        <UiButton title="เพิ่มข้อมูล" color="btn-primary" @click="openModal('create')" />
     </UiHeader>
     <UiTable :cols="cols" :rows="assignments">
         <template #action="{ row }">
             <div class="space-x-2">
-                <UiButton title="แก้ไข" color="btn-warning" @click="openModal('edit', row)" />
-                <UiButton title="ลบ" color="btn-error" @click="Delete('/api/')" />
+                <UiBadge icon="mdi mdi-account-edit" title="แก้ไข" color="badge-warning"
+                    @click="openModal('edit', row)" />
+                <UiBadge icon="mdi mdi-delete" title="ลบ" color="badge-error" @click="Delete(endpoint, row.assign_id)" />
             </div>
         </template>
     </UiTable>
@@ -17,7 +18,7 @@
                 <legend>เลือกหัวข้อการมอบหมาย</legend>
                 <select class="select w-full" v-model="formRef.eval_id">
                     <option v-for="evaltion in evaluation" :value="evaltion.id">
-                        {{ evaltion.title}}
+                        {{ evaltion.title }}
                     </option>
                 </select>
             </div>
@@ -66,8 +67,7 @@ const assignments = computed(() => store.assignments);
 const endpoint = "/api/assignments";
 
 const cols = [
-    { field: "assignment_id", label: "ลำดับ" },
-    { field: "evaluation_title", label: "หัวข้อประเมิน" },
+    { field: "title", label: "หัวข้อประเมิน" },
     { field: "evaluator_name", label: "กรรมการ" },
     { field: "evaluatee_name", label: "ผู้รับประเมิน" },
     { field: "position", label: "ตำแหน่ง" },
@@ -92,6 +92,7 @@ const openModal = (type, row = null) => {
         resetForm(formRef.value);
     } else {
         formRef.value = { ...row };
+        formRef.value.id = row.assign_id
     }
 
     showModal("modal_assignment");

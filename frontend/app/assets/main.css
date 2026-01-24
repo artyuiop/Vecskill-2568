@@ -19,3 +19,7 @@ body{
 .flex-end{
     @apply flex justify-end items-center
 }
+
+.btn{
+    font-weight: normal;   
+}

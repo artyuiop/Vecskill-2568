@@ -38,13 +38,13 @@
             </div>
         </div>
         <div v-if="formIndicator.type === 'score'">
-            <UiInput v-model="formLevel.level1"/>
-            <UiInput v-model="formLevel.level2"/>
-            <UiInput v-model="formLevel.level3"/>
-            <UiInput v-model="formLevel.level4"/>
+            <UiInput v-model="formLevel.level1" />
+            <UiInput v-model="formLevel.level2" />
+            <UiInput v-model="formLevel.level3" />
+            <UiInput v-model="formLevel.level4" />
         </div>
         <div class="flex-end gap-3 mt-2">
-            <button class="btn">ยกเลิก</button>
+            <button class="btn" @click="CloseModal('modal_indicator')">ยกเลิก</button>
             <button class="btn btn-primary" @click="handleInsert">ตกลง</button>
         </div>
     </UiModal>
@@ -61,24 +61,25 @@ const formIndicator = ref({});
 const formLevel = ref({});
 
 const handleInsert = async () => {
-    try{
+    try {
         const res = await Insert('/api/indicators', formIndicator.value)
         console.log(res)
 
-        if(res && formIndicator.value.type === 'score'){
+        if (res && formIndicator.value.type === 'score') {
             const indic_id = res.id //id จาก response backend
-            const levelPayload = {
-                levels: [
-                    { level: 1, description: formLevel.value.level1 },
-                    { level: 2, description: formLevel.value.level2 },
-                    { level: 3, description: formLevel.value.level3 },
-                    { level: 4, description: formLevel.value.level4 },
-                ]
-            }
+            const levelPayload = [
+                { level: 1, description: formLevel.value.level1 },
+                { level: 2, description: formLevel.value.level2 },
+                { level: 3, description: formLevel.value.level3 },
+                { level: 4, description: formLevel.value.level4 },
+            ]
 
             await Insert(`/api/indicators/levels/${indic_id}`, levelPayload)
         }
-    }catch(e){
+        resetForm(formIndicator.value)
+        resetForm(formLevel.value)
+        CloseModal('modal_indicator')
+    } catch (e) {
         console.log(e)
     }
 }

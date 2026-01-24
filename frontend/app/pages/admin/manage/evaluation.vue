@@ -1,13 +1,13 @@
 <template>
     <UiHeader title="จัดการหัวข้อการประเมิน" description="manage evaluation">
-        <UiButton title="เพิ่มข้อมูล" color="btn-primary" @click="openModal('create')" />
+        <UiButton title="เพิ่มข้อมูล" color="btn-primary btn-soft" @click="openModal('create')" />
     </UiHeader>
     <UiTable :cols="cols" :rows="data_evaluation">
         <template #action="{ row }">
             <div class="space-x-2">
                 <UiBadge icon="mdi mdi-account-edit" title="แก้ไข" color="badge-warning"
                     @click="openModal('edit', row)" />
-                <UiBadge icon="mdi mdi-delete" title="ลบ" color="badge-error" @click="Delete('/api/')" />
+                <UiBadge icon="mdi mdi-delete" title="ลบ" color="badge-error" @click="Delete(endpoint, row.id)" />
             </div>
         </template>
     </UiTable>

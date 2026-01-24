@@ -11,9 +11,18 @@
 
 <script setup>
 import { dataStore } from '#imports';
-const data = dataStore();
+const store = dataStore();
+const auth = authStore();
+
+watch(() => auth.token, (newToken) => {
+  if (newToken) {
+    store.fetchAllData();
+  }
+}, { immediate: true });
 
 onMounted(() => {
-  data.fetchAllData()
-})
+  if (auth.token) {
+    store.fetchAllData();
+  }
+});
 </script>

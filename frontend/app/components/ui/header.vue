@@ -1,7 +1,7 @@
 <template>
-    <div class="flex-between  p-2 rounded-[10px]">
+    <div class="flex-between  p-2 rounded-[10px] shadow-xs p-4">
         <div>
-            <h1 class="text-xl">{{ title }}</h1>
+            <h1 class="text-xl text-primary">{{ title }}</h1>
             <p class="text-xs text-gray-600">{{ description }}</p>
         </div>
         <div>

@@ -53,11 +53,16 @@ export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
   }
 };
 
-export const Delete = async (endpointID) => {
+export const Delete = async (endpoint, id) => {
   try {
     if (confirm("คุณต้องการลบหรือไม่?")) {
-      const res = await api.delete(endpointID);
-      return showAlert("ดำเนินการลบข้อมูลสำเร็จ", "success");
+      const res = await api.delete(`${endpoint}/${id}`);
+      showAlert("ดำเนินการลบข้อมูลสำเร็จ", "success");
+
+      const store = dataStore()
+      await store.fetchAllData(true);
+      
+      return;
     }
   } catch (e) {
     console.log(e);

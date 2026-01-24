@@ -11,6 +11,9 @@ export const dataStore = defineStore("data", {
   }),
   actions: {
     async fetchAllData(force = false){
+        const auth = authStore()
+        if(!auth.token) return
+        
         if(this.isLoaded && !force) return;
 
         try{

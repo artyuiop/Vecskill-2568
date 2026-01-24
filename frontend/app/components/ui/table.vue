@@ -20,6 +20,9 @@
                         </div>
                     </td>
                 </tr>
+                <tr v-if="!rows || rows.length === 0">
+                    <td :colspan="cols.length" class="text-center text-gray-400">ไม่มีข้อมูล</td>
+                </tr>
             </tbody>
         </table>
     </div>

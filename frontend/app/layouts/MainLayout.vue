@@ -7,7 +7,7 @@
         <LayoutsHeader />
 
         <!-- Main Content -->
-        <div class=" p-12 shadow-sm mx-6 mt-6 mb-2 rounded-[10px] bg-white">
+        <div class=" p-10 shadow-sm mx-6 mt-6 mb-2 rounded-[10px] bg-white">
           <slot></slot>
         </div>
       </div>

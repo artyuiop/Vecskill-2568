@@ -1,6 +1,6 @@
 <template>
     <UiHeader title="จัดการกรรมการผู้ประเมิน" description="manage evaluator">
-        <UiButton title="เพิ่มข้อมูล" color="btn-primary" @click="openModal('create')" />
+        <UiButton title="เพิ่มข้อมูล" color="btn-primary btn-soft" @click="openModal('create')" />
     </UiHeader>
 
     <UiTable :cols="cols" :rows="data_users">
@@ -8,7 +8,7 @@
             <div class="space-x-2">
                 <UiBadge icon="mdi mdi-account-edit" title="แก้ไข" color="badge-warning"
                     @click="openModal('edit', row)" />
-                <UiBadge icon="mdi mdi-delete" title="ลบ" color="badge-error" @click="Delete('/api/')" />
+                <UiBadge icon="mdi mdi-delete" title="ลบ" color="badge-error" @click="Delete(endpoint, row.id)" />
             </div>
         </template>
         <template #role="{ row }">
