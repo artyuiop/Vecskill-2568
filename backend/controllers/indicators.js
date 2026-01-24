@@ -21,7 +21,7 @@ exports.AddOrUpdateIndic = async (req, res) => {
       }
 
       // เช็คว่าตรงไหม
-      if (!['png', 'jpg', 'pdf', 'url'].includes(type_file)) {
+      if (!['png', 'image', 'url'].includes(type_file)) {
         return send(res, { msg: "type_file ไม่ถูกต้อง!" }, 403)
       }
     }
@@ -130,28 +130,22 @@ exports.AddEvidence = async (req, res) => {
     const file = req.file
 
     const indic = await db('indicators').where({ id: indic_id }).first()
-    const dup = await db('evidence').where({ indic_id, user_id: uid }).first()
-
     if (!indic) return send(res, { msg: "ไม่พบตัวชี้วัด" }, 404)
     if (indic.allow_evidence !== 'allow') return send(res, { msg: "ไม่สามารถแนบหลักฐานได้" }, 403)
+
+    const dup = await db('evidence').where({ indic_id, user_id: uid }).first()
     if (dup) return send(res, { msg: "มีหลักฐานแล้ว กรุณาลบก่อน" }, 403)
 
-    //  เช็คตาม type_file
-    const map = {
-      png: 'image/png',
-      jpg: 'image/jpeg',
-      pdf: 'application/pdf'
+    // validate file ai ย่อให้
+    const rules = {
+      url: () => file_url,
+      image: () => file && file.mimetype.startsWith('image/'),
+      pdf: () => file && file.mimetype === 'application/pdf'
     }
 
-    if (indic.type_file === 'url') {
-      if (!file_url) return send(res, { msg: "ต้องกรอก URL" }, 400)
-    } else {
-      if (!file) return send(res, { msg: "ต้องแนบไฟล์" }, 400)
-      if (file.mimetype !== map[indic.type_file])
-        return send(res, { msg: "ชนิดไฟล์ไม่ตรงตามที่กำหนด" }, 400)
-    }
+    if (!rules[indic.type_file]?.()) return send(res, { msg: "ไฟล์หรือข้อมูลไม่ถูกต้อง" }, 400)
 
-    await db('evidence').insert({ indic_id, user_id: uid, file_path: file.filename , file_url, description })
+    await db('evidence').insert({ indic_id,user_id: uid, description,file_path: file.filename,file_url: file_url})
 
     send(res, { msg: "แนบหลักฐานสำเร็จ" })
   } catch (e) {
@@ -169,6 +163,7 @@ exports.delEvid = async (req, res) => {
 
     await db('evidence').where({ id: evid_id }).del()
 
+    
     send(res, { msg: "ลบหลักฐานสำเร็จ!" })
   } catch (e) {
     err(res, e)
