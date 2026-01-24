@@ -2,6 +2,7 @@ const db = require('../config/db')
 const { err, send } = require('../utils/help')
 
 
+// เพิ่มรอบการประเมิน
 exports.AddEval = async (req, res) => {
   try {
     const { title, start_date, end_date } = req.body
@@ -16,6 +17,7 @@ exports.AddEval = async (req, res) => {
 }
 
 
+// ดูรอบการประเมิน
 exports.listEval = async (req, res) => {
   try {
     const rows = await db('evaluations')
@@ -25,7 +27,7 @@ exports.listEval = async (req, res) => {
   }
 }
 
-
+// ดูรอบการประเมินทีละอัน
 exports.listEvalID = async (req, res) => {
   try {
     const { id } = req.params
@@ -37,7 +39,7 @@ exports.listEvalID = async (req, res) => {
   }
 }
 
-
+// แก้ไขรอบการประเมิน
 exports.changeEval = async (req, res) => {
   try {
     const { id } = req.params
@@ -54,7 +56,7 @@ exports.changeEval = async (req, res) => {
   }
 }
 
-
+// ลบรอบการประเมิน
 exports.delEval = async (req, res) => {
   try {
     const { id } = req.params

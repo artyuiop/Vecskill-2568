@@ -2,7 +2,7 @@ const db = require('../config/db')
 const {send , err}  = require('../utils/help')
 const { fn } = require('../utils/query')
 
-
+// มอยหมาย & แก้ไขมอบหมาย
 exports.AddOrUpdateAssign = async(req , res) => {
     try {
         const {id} = req.params
@@ -32,6 +32,7 @@ exports.AddOrUpdateAssign = async(req , res) => {
     }
 }
 
+// ยกเลิกการมอบหมาย
 exports.delAssign = async(req ,res) => {
     try {
         const {id} = req.params
@@ -46,6 +47,7 @@ exports.delAssign = async(req ,res) => {
     }
 }
 
+// แสดงข้เอมูลที่ต้องประเมิน
 exports.ListAssign = async(req, res) => {
     try {
         const user = req.user

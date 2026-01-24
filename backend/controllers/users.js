@@ -1,6 +1,7 @@
 const db = require('../config/db')
 const { send, err } = require('../utils/help')
 
+//  เพิ่่มผู้ใช้งาน
 exports.createUser = async (req, res) => {
   try {
     const { fname, lname, username, password, role } = req.body
@@ -20,6 +21,7 @@ exports.createUser = async (req, res) => {
   }
 }
 
+// ดูผู้ใช้งานตาม Role
 exports.listUserRole = async (req, res) => {
   try {
     const { role } = req.query
@@ -31,6 +33,7 @@ exports.listUserRole = async (req, res) => {
   }
 }
 
+// ดูผู้ใช้งานทีละคน
 exports.listUserID = async (req, res) => {
   try {
     const { id } = req.params
@@ -42,6 +45,7 @@ exports.listUserID = async (req, res) => {
   }
 }
 
+// ดูโปรไฟล์์
 exports.getDetailMe = async (req, res) => {
   try {
     const id = req.user.id
@@ -53,6 +57,7 @@ exports.getDetailMe = async (req, res) => {
   }
 }
 
+// แก้ไขโปรไฟล์
 exports.changeUser = async (req, res) => {
   try {
     const { id } = req.params
@@ -69,7 +74,7 @@ exports.changeUser = async (req, res) => {
   }
 }
 
-
+// ลบผู้ใช้งาน
 exports.deluser = async(req ,res) => {
   try {
     const {id} = req.params
