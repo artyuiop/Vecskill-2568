@@ -33,7 +33,8 @@ exports.giveScore = async (req, res) => {
         // insert
         : db('assessments').insert({ indic_id, assign_id ,role,
             score: ind.type === 'score' ? score : null,
-            bool_score: ind.type === 'boolean' ? hasIt : null
+            bool_score: ind.type === 'boolean' ? hasIt : null,
+            status: role === 'self' ? 'completed' : 'in_progress'
         })
     )
     
@@ -43,38 +44,65 @@ exports.giveScore = async (req, res) => {
   }
 }
 
+// ดูความคืบหน้าแต่ละตัวชี้วัด & ดูภาพรวมตัวชี้วัด
 exports.getIndicatorProgress = async(req, res) => {
     try {
         const { assign_id } = req.params
-        // const uid = req.user.id
+        const uid = req.user.id
 
-        const row = await db('indicators as i')
+
+        const rows = await db('indicators as i')
             .join('assignments as asm', 'i.eval_id', 'asm.eval_id')
             .leftJoin('assessments as a', q => {
                 q.on('i.id', '=', 'a.indic_id')
-                    .andOn('a.assign_id', '=', 'asm.id')
-                    .andOn('a.role', '=', db.raw('?', ['self']))
+                .andOn('a.assign_id', '=', 'asm.id')
+                .andOn('a.role', '=', db.raw('?', ['self']))
             })
             .leftJoin('evidence as e', q => {
                 q.on('i.id', '=', 'e.indic_id')
-                    .andOn('e.user_id', '=', 'asm.evaluatee_id')
+                .andOn('e.user_id', '=', 'asm.evaluatee_id')
             })
-            .where('asm.id', assign_id)
+            .leftJoin('levels as l', 'l.indic_id', 'i.id')
+            .where({ 'asm.id': assign_id, 'asm.evaluatee_id': uid })
             .select(
-                'i.id', 'i.name', 'i.description', 'i.weight', 'i.allow_evidence',
+                'i.id', 'i.name', 'i.description', 'i.weight', 'i.type', 'i.allow_evidence',
                 'a.score as self_score', 'a.status',
-                'e.description', 'e.file_path', 'e.file_url'
+                'e.file_path', 'e.file_url',
+                'l.id as level_id', 'l.level', 'l.description as level_description'
             )
 
+        // Data indicators
+        const map = {}
 
-        // const indicator = row.map(r => {
-        //     let status = 'ยังไม่ดำเนินการ'
+        rows.forEach(r => {
+            if(!map[r.id]) {
+                map[r.id] = {
+                    ...r, level: []
+                }
+            }
 
-        //     if(r.self_score !== null) {
-                
-        //     }
-        // }) 
-        send(res, row)
+            // push levels Data
+            if(r.level_id) {
+                map[r.id].level.push({
+                    id: r.level_id,
+                    level: r.level,
+                    descripton: r.level_description
+                })
+            }
+        })
+
+        // console.log(map)
+        const indicator = Object.values(map)
+        // console.log(indicator)
+        const done = indicator.filter(i => i.status === 'เสร็จสิ้น').length
+        const All = indicator.length
+
+
+        send(res, {
+            Progress: `${done} / ${All}`,
+            status: done === 0 ? 'ยังไม่ดำเนินการ' : done < All ? 'กำลังดำเนินการ' : 'เสร็จสิ้น',
+            indicators: indicator
+        })
     } catch(e) {
         err(res, e)
     }
