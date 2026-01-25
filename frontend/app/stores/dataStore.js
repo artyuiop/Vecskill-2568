@@ -17,19 +17,19 @@ export const dataStore = defineStore("data", {
         if(this.isLoaded && !force) return;
 
         try{
-            const [evaluatee, evaluator, evaluation, assignments, indicator] = await Promise.all([
+            const [evaluatee, evaluator, evaluation, assignments] = await Promise.all([
                     Fetch('/api/users/getUserRole?role=evaluatee'),
                     Fetch('/api/users/getUserRole?role=evaluator'),
                     Fetch('/api/evaluations'),
                     Fetch('/api/assignments'),
-                    Fetch('/api/indicators')
+                    // Fetch('/api/indicators')
             ])
 
             this.evaluatee = evaluatee;
             this.evaluator = evaluator;
             this.evaluation = evaluation;
             this.assignments = assignments;
-            this.indicator = indicator;
+            // this.indicator = indicator;
 
             this.isLoaded = true;
         }catch(e){

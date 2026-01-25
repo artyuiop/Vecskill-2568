@@ -1,19 +1,9 @@
 <template>
-    <div class="flex-between mb-2">
+    <div class="flex-end mb-2">
         <label class="input">
             <i class="mdi mdi-magnify"></i>
             <input type="search" class="grow" placeholder="Search" v-model="searchQuery" />
         </label>
-        <div class="flex items-center gap-2 text-sm">
-            <span class="opacity-60">แสดง</span>
-            <select v-model="countPage" class="select select-sm">
-                <option :value="5">5</option>
-                <option :value="10">10</option>
-                <option :value="20">20</option>
-                <option :value="50">50</option>
-            </select>
-            <span class="opacity-60">รายการ</span>
-        </div>
     </div>
     <div class="w-full overflow-auto rounded-[20px] border border-gray-200/30">
         <table class="table table-zebra">

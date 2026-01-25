@@ -23,6 +23,7 @@ export default defineNuxtConfig({
         usePolling: true
       }
     },
+    
   },
 
   

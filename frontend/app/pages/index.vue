@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen flex-center bg-slate-50">
+    <div class="min-h-screen flex-center bg-slate-50 p-4 md:p-0">
         <UiCard class="max-w-md w-full p-7 bg-white">
             <div class="flex-center flex-col">
                 <div class="flex-center w-15 h-15 bg-primary text-white rounded-[5px]">

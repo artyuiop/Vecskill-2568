@@ -34,17 +34,13 @@ const props = defineProps({
 });
 
 const toastRef = ref(null);
-watch(
-  () => props.show,
-  async (newVal) => {
-    if (newVal && props.toast) {
-      await nextTick();
-      if (toastRef.value) {
-        toastRef.value.showPopover();
-      }
-    }
+watch(() => props.show, async() => {
+  await nextTick()
+  if(toastRef.value){
+    toastRef.value.showPopover()
   }
-);
+})
+
 
 const alertColorClass = computed(() => {
   switch (props.status) {

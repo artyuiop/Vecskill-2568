@@ -31,11 +31,14 @@
     <!-- ตารางตัวชี้วัด -->
     <UiTable class="mt-4" :cols="cols" :rows="indic">
         <template #action="{ row }">
-            <UiBadge icon="mdi mdi-pencil" color="badge-primary" @click="openModal(row)" />
+            <div class="space-x-2">
+                <UiBadge icon="mdi mdi-delete" color="badge-error" @click="Delete('/api/indicators/')" />
+                <UiBadge icon="mdi mdi-pencil" color="badge-primary" @click="openModal(row)" />
+            </div>
         </template>
         <template #status="{ row }">
             <UiBadge :class="row.status === null ? 'badge-error' : 'badge-primary'"
-                :title="row.status || 'ยังไม่เริ่มประเมิน'" />
+                :title="row.status === 'completed' ? 'ดำเนินการสำเร็จ' : 'ยังไม่เริ่มประเมิน'" />
         </template>
     </UiTable>
 
@@ -46,33 +49,47 @@
     <!-- Modal - ประเมินตนเอง และ แนบหลักฐาน -->
     <UiModal modal_id="modal_self" size="max-w-4xl" :title="'ตัวชี้วัด ' + selectModalIndic?.name">
         <div class="gap-6 mt-5">
-            <div class="space-y-4 border-r pr-6 border-slate-200">
+            <div class="space-y-4 pr-6">
+                <!-- เลือกคะแนน -->
                 <div class="fieldset">
                     <legend>คะแนนที่ประเมินตนเอง</legend>
-                    <select class="select w-full" v-if="selectModalIndic?.type === 'score'">
-                        <option disabled="">เลือกคะแนน</option>
+                    <select v-model="form_score.score" class="select w-full" v-if="selectModalIndic?.type === 'score'">
                         <option v-for="level in selectModalIndic?.level" :value="level.id">
-                           {{ level.level }} {{ level.description || level.descripton }}
+                            {{ level.level }} {{ level.description || level.descripton }}
                         </option>
                     </select>
-                    <select class="select w-full" v-if="selectModalIndic?.type === 'boolean'">
-                        <option value="มี">มี</option>
-                        <option value="ไม่มี">ไม่มี</option>
+                    <select v-model="form_score.hasIt" class="select w-full" v-if="selectModalIndic?.type === 'boolean'">
+                        <option value="have">มี</option>
+                        <option value="not_have">ไม่มี</option>
                     </select>
                 </div>
 
-                <UiInput type="file" label="อัพโหลดหลักฐานเอกสาร" />
+                <!-- อัพโหลดหลักฐาน -->
+                <div v-if="
+                    selectModalIndic?.type_file === 'image' ||
+                    selectModalIndic?.type_file === 'pdf'
+                ">
+                    <UiInput type="file" label="อัพโหลดหลักฐานเอกสาร (รูปภาพ, ไฟล์pdf)" @change="handleFileChange" />
+                </div>
+                <div v-else>
+                    <UiInput label="อัพโหลดหลักฐาน URL" v-model="form_upload.file_url" />
+                </div>
 
+                <!-- คำอธิบายหลักฐาน -->
                 <div class="fieldset">
                     <legend>คำอธิบายเพิ่มเติม/หมายเหตุ</legend>
-                    <textarea class="textarea textarea-bordered w-full h-24" placeholder="ระบุรายละเอียด..."></textarea>
+                    <textarea v-model="form_upload.description" class="textarea textarea-bordered w-full h-24" placeholder="ระบุรายละเอียด..."></textarea>
                 </div>
             </div>
         </div>
 
-        <div class="mt-8 flex justify-end gap-3 border-t border-slate-200 pt-4">
-            <button class="btn btn-ghost" @click="CloseModal('modal_self')">ยกเลิก</button>
-            <button class="btn btn-primary px-8" @click="handleSubmit">บันทึกการประเมิน</button>
+        <div class="mt-8 flex justify-end gap-3 pt-4">
+            <button class="btn btn-neutral btn-soft" @click="CloseModal('modal_self')">
+                ยกเลิก
+            </button>
+            <button class="btn btn-primary px-8" @click="handleSubmit">
+                บันทึกการประเมิน
+            </button>
         </div>
     </UiModal>
 </template>
@@ -86,7 +103,7 @@ const store = dataStore();
 // -- state --
 const assignments = computed(() => store.assignments);
 const indic = ref([]);
-const progress = ref({ progress: '', status: '' })
+const progress = ref({ progress: "", status: "" });
 const selectAssignId = ref(null);
 const selectModalIndic = ref(null);
 const cols = [
@@ -100,11 +117,13 @@ const fetchIndic = async (assignId) => {
 
     const job = assignments.value.find((a) => a.assign_id === assignId);
     if (job) {
-        const res = await Fetch(`/api/assessments/getIndicatorProgress/${job.assign_id}`)
+        const res = await Fetch(
+            `/api/assessments/getIndicatorProgress/${job.assign_id}`,
+        );
         progress.value = {
             progress: res.Progress,
-            status: res.status
-        }
+            status: res.status,
+        };
         indic.value = res.indicators;
     }
 };
@@ -117,26 +136,75 @@ const openModal = (row) => {
 
 // Modal ความคิดเห็นกรรมการ
 const openModalComment = () => {
-    showModal('modal_comment')
-}
+    showModal("modal_comment");
+};
 
 // function หาชื่อรอบประเมินตามที่เลือก
 const selectAssignName = computed(() => {
-    const current = assignments.value.find(a => a.assign_id === selectAssignId.value)
-    return current ? current.title : 'ไม่มีรอบประเมิน'
-})
+    const current = assignments.value?.find(
+        (a) => a.assign_id === selectAssignId.value,
+    );
+    return current ? current.title : "ไม่มีรอบประเมิน";
+});
 
 // คำนวณ progress
 const progressPercent = computed(() => {
     if (!progress.value.progress) return 0;
-    const [current, total] = progress.value.progress.split(' / ').map(Number);
+    const [current, total] = progress.value.progress.split(" / ").map(Number);
     return total > 0 ? (current / total) * 100 : 0;
 });
 
-const handleSubmit = async() => {
-    const res = await Insert('');
-    console.log(res)
+// State ประเมินตนเอง & อัพโหลด
+const form_score = ref({
+    indic_id: null,
+    score: "",
+    hasIt: "",
+});
+
+const form_upload = ref({
+    file_url: "",
+    file: null,
+    description: "",
+});
+
+// ประเมินตนเอง
+const handleSubmit = async () => {
+    const indicId = selectModalIndic.value.id;
+    const type_file = selectModalIndic.value.type_file;
+    const formdata = new FormData();
+    const assignId = selectAssignId.value;
+    form_score.value.indic_id = indicId;
+    formdata.append("description", form_upload.value.description);
+
+    if(!form_score.value.score && !form_score.value.hasIt){
+        return showAlert('กรุณาระบุคะแนน', "error")
+    }
+    
+    if(type_file === "url" && !form_upload.value.file_url){
+        return showAlert('กรุณากรอกลิ้งค์ URL หลักฐาน', "error")
+    }
+    
+    if((type_file === "image" || type_file === "pdf") && !form_upload.value.file){
+        return showAlert('กรุณาแนบไฟล์หลักฐาน', "error")
+    }
+
+    await Insert(`/api/assessments/give-score/${assignId}`, form_score.value);
+
+    if (type_file === "url") {
+        formdata.append("file_url", form_upload.value.file_url);
+    }else {
+        if (form_upload.value.file) {
+            formdata.append("file", form_upload.value.file);
+        }
+    }
+
+    const res = await Insert(`/api/indicators/evidence/${indicId}`, formdata);
+    CloseModal('modal_self')
 }
+
+const handleFileChange = async (e) => {
+    form_upload.value.file = e.target.files[0];
+};
 
 watch(selectAssignId, (newId) => {
     fetchIndic(newId);

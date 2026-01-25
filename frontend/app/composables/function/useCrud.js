@@ -21,6 +21,7 @@ export const Update = async (endpointID, formUpdate) => {
 
 export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
   try {
+    if (!useValidate(formInsert)) return;
     const res = await api.post(endpoint, formInsert);
 
     // ถ้าเป็นlogin mode
