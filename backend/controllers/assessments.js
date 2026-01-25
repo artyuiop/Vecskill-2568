@@ -65,7 +65,7 @@ exports.getIndicatorProgress = async(req, res) => {
             .leftJoin('levels as l', 'l.indic_id', 'i.id')
             .where({ 'asm.id': assign_id, 'asm.evaluatee_id': uid })
             .select(
-                'i.id', 'i.name', 'i.description', 'i.weight', 'i.type', 'i.allow_evidence',
+                'i.id', 'i.name', 'i.description', 'i.weight', 'i.type', 'i.allow_evidence', 'i.type_file',
                 'a.score as self_score', 'a.status',
                 'e.file_path', 'e.file_url',
                 'l.id as level_id', 'l.level', 'l.description as level_description'
@@ -107,3 +107,33 @@ exports.getIndicatorProgress = async(req, res) => {
         err(res, e)
     }
 }
+
+// ลงนาม & คอมเม้น
+exports.SubmitSignatures = async(req , res) => {
+    try {
+        const { assign_id} = req.params
+        const { sign_file , comment } = req.body
+        const uid = req.user.id
+
+        if(![sign_file , comment].every(Boolean)) return send(res, {msg: "กรุณากรอกข้อมูลให้ครบ"}, 403)
+
+        const assign = await db('assignments').where({ id: assign_id , evaluator_id: uid }).first()
+        if (!assign) return send(res, { msg: 'ไม่มีสิทลงนาม!' }, 404)
+
+        await db('signatures').insert({assign_id, sign_file , comment }).onConflict(['assign_id']).merge()
+        send(res, { msg: "บันทึกลายเซ็นสำเร็จ!" })
+    } catch(e) {
+        err(res , e)
+    }
+}
+
+// exports.getComments = async(req, res) => {
+//     try {
+//         const { assign_id } = req.params
+//         const uid = req.user.id
+
+        
+//     }catch(e) {
+//         err(res, e)
+//     }
+// }
