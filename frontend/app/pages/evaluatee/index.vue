@@ -1,6 +1,6 @@
 <template>
     <!-- Header & เลือกรอบประเมิน & Export Pdf -->
-    <UiHeader title="ประเมินตนเอง" description="รอบการประเมิน">
+    <UiHeader title="ประเมินตนเอง" :description="'รอบการประเมิน ' + selectAssignName">
         <div class="flex items-center gap-3">
             <div class="fieldset w-40">
                 <legend>เลือกรอบการประเมิน</legend>
@@ -10,6 +10,9 @@
                     </option>
                 </select>
             </div>
+            <button class="btn btn-secondary btn-outline mt-6 shadow-sm" @click="openModalComment">
+                <i class="mdi mdi-comment text-lg"></i> ดูความคิดเห็นกรรมการ
+            </button>
             <button class="btn btn-primary btn-outline mt-6 shadow-sm">
                 <i class="mdi mdi-printer text-lg"></i> Export PDF
             </button>
@@ -17,9 +20,12 @@
     </UiHeader>
 
     <!-- ความคืบหน้า -->
-    <UiCard class="mt-2 p-3">
-        <label class="text-lg">ความคืบหน้า รอบประเมิน</label>
-        <span class="progress progress-primary"></span>
+    <UiCard class="mt-2 mb-4 p-3">
+        <div class="flex-between">
+            <label class="text-lg">ความคืบหน้า รอบประเมิน {{ selectAssignName }}</label>
+            <span>{{ progress.progress }}</span>
+        </div>
+        <progress class="progress progress-primary" :value="progressPercent" max="100"></progress>
     </UiCard>
 
     <!-- ตารางตัวชี้วัด -->
@@ -27,42 +33,40 @@
         <template #action="{ row }">
             <UiBadge icon="mdi mdi-pencil" color="badge-primary" @click="openModal(row)" />
         </template>
+        <template #status="{ row }">
+            <UiBadge :class="row.status === null ? 'badge-error' : 'badge-primary'"
+                :title="row.status || 'ยังไม่เริ่มประเมิน'" />
+        </template>
     </UiTable>
 
-    <UiModal modal_id="modal_self" size="max-w-4xl" :title="'ตัวชี้วัด ' + selectModalIndic?.name">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5">
+    <UiModal modal_id="modal_comment" :title="'ดูความคิดเห็นกรรมการ รอบ'">
+        {{ selectAssignName }}
+    </UiModal>
 
+    <!-- Modal - ประเมินตนเอง และ แนบหลักฐาน -->
+    <UiModal modal_id="modal_self" size="max-w-4xl" :title="'ตัวชี้วัด ' + selectModalIndic?.name">
+        <div class="gap-6 mt-5">
             <div class="space-y-4 border-r pr-6 border-slate-200">
-                <UiBadge icon="mdi mdi-account" title="ส่วนผู้รับการประเมิน" color="badge-neutral"/>
                 <div class="fieldset">
                     <legend>คะแนนที่ประเมินตนเอง</legend>
                     <select class="select w-full" v-if="selectModalIndic?.type === 'score'">
-                        <option value="">เลือกคะแนน</option>
-                        <option></option>
+                        <option disabled="">เลือกคะแนน</option>
+                        <option v-for="level in selectModalIndic?.level" :value="level.id">
+                           {{ level.level }} {{ level.description || level.descripton }}
+                        </option>
                     </select>
                     <select class="select w-full" v-if="selectModalIndic?.type === 'boolean'">
                         <option value="มี">มี</option>
                         <option value="ไม่มี">ไม่มี</option>
                     </select>
                 </div>
-                
+
                 <UiInput type="file" label="อัพโหลดหลักฐานเอกสาร" />
-                
+
                 <div class="fieldset">
                     <legend>คำอธิบายเพิ่มเติม/หมายเหตุ</legend>
                     <textarea class="textarea textarea-bordered w-full h-24" placeholder="ระบุรายละเอียด..."></textarea>
                 </div>
-            </div>
-            
-            <div class="space-y-4">
-                <UiBadge icon="mdi mdi-account" title="ส่วนสำหรับกรรมการ" color="badge-primary"/>
-                
-                <UiCard class="px-2">
-                    <h1 class="text-primary"><i class="mdi mdi-comment"></i> ความคิดเห็นกรรมการ</h1>
-                    <div class="chat chat-start">
-                        <div class="chat-bubble">You underestimate my power!</div>
-                    </div>
-                </UiCard>
             </div>
         </div>
 
@@ -79,13 +83,15 @@ definePageMeta({
 });
 const store = dataStore();
 
+// -- state --
 const assignments = computed(() => store.assignments);
 const indic = ref([]);
+const progress = ref({ progress: '', status: '' })
 const selectAssignId = ref(null);
 const selectModalIndic = ref(null);
 const cols = [
     { field: "name", label: "ชื่อตัวชี้วัด" },
-    { field: "", label: "สถานะ" },
+    { field: "status", label: "สถานะ" },
     { field: "action", label: "จัดการ" },
 ];
 
@@ -94,15 +100,47 @@ const fetchIndic = async (assignId) => {
 
     const job = assignments.value.find((a) => a.assign_id === assignId);
     if (job) {
-        const res = await Fetch(`/api/indicators/${job.eval_id}`);
-        indic.value = res;
+        const res = await Fetch(`/api/assessments/getIndicatorProgress/${job.assign_id}`)
+        progress.value = {
+            progress: res.Progress,
+            status: res.status
+        }
+        indic.value = res.indicators;
     }
 };
 
+// Modal ประเมินตนเอง
 const openModal = (row) => {
     showModal("modal_self");
     selectModalIndic.value = row;
 };
+
+// Modal ความคิดเห็นกรรมการ
+const openModalComment = () => {
+    showModal('modal_comment')
+}
+
+// function หาชื่อรอบประเมินตามที่เลือก
+const selectAssignName = computed(() => {
+    const current = assignments.value.find(a => a.assign_id === selectAssignId.value)
+    return current ? current.title : 'ไม่มีรอบประเมิน'
+})
+
+// คำนวณ progress
+const progressPercent = computed(() => {
+    if (!progress.value.progress) return 0;
+    const [current, total] = progress.value.progress.split(' / ').map(Number);
+    return total > 0 ? (current / total) * 100 : 0;
+});
+
+const handleSubmit = async() => {
+    const res = await Insert('');
+    console.log(res)
+}
+
+watch(selectAssignId, (newId) => {
+    fetchIndic(newId);
+});
 
 onMounted(async () => {
     if (store.assignments.length === 0) {
@@ -111,9 +149,5 @@ onMounted(async () => {
     if (assignments.value.length > 0) {
         selectAssignId.value = assignments.value[0].assign_id;
     }
-});
-
-watch(selectAssignId, (newId) => {
-    fetchIndic(newId);
 });
 </script>

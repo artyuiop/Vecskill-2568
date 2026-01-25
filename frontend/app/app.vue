@@ -1,10 +1,10 @@
 <template>
+  <UiAlert
+    :title="alert.title"
+    :status="alert.status"
+    :show="alert.show"
+  />
   <NuxtLayout>
-    <UiAlert
-      :title="alert.title"
-      :status="alert.status"
-      :show="alert.show"
-    />
     <NuxtPage/>
   </NuxtLayout>
 </template>

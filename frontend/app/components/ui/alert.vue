@@ -52,12 +52,6 @@ const alertColorClass = computed(() => {
       return "alert-success text-success border-success/20";
     case "error":
       return "alert-error text-error border-error/20";
-    case "warning":
-      return "alert-warning text-warning border-warning/20";
-    case "info":
-      return "alert-info text-info border-info/20";
-    default:
-      return "";
   }
 });
 
@@ -67,12 +61,6 @@ const iconClass = computed(() => {
       return "mdi mdi-check-circle";
     case "error":
       return "mdi mdi-alert-circle";
-    case "warning":
-      return "mdi mdi-alert";
-    case "info":
-      return "mdi mdi-information";
-    default:
-      return "mdi mdi-help-circle";
   }
 });
 </script>

@@ -20,6 +20,16 @@
             <UiInput label="น้ำหนักคะแนน" type="number" v-model="formIndicator.weight" />
             <!-- <UiInput label="ประเภทหลักฐาน" type="text" v-model="formIndicator.file_type" /> -->
         </div>
+
+        <div>
+            <label class="fieldset">กำหนดรูปแบบหลักฐาน</label>
+            <select class="select w-full" v-model="formIndicator.eval_id">
+                <option value="">URL</option>
+                <option value="">PDF</option>
+                <option value="">IMAGE</option>
+            </select>
+        </div>
+
         <div>
             <label class="label font-bold text-xs mb-3">รูปแบบการประเมิน</label>
 

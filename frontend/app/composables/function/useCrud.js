@@ -22,6 +22,8 @@ export const Update = async (endpointID, formUpdate) => {
 export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
   try {
     const res = await api.post(endpoint, formInsert);
+
+    // ถ้าเป็นlogin mode
     if (IsloginRegister === "login") {
       const auth = authStore();
       const token = res.data.token;
@@ -37,17 +39,22 @@ export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
             return navigateTo("/evaluator");
         }
       }
-
       return showAlert("เข้าสู่ระบบสำเร็จ", "success");
+
+    // ถ้าเป็นregister mode
     } else if (IsloginRegister === "register") {
       resetForm(formInsert);
+      CloseModal('modal_register')
       return showAlert("สมัครสมาชิก", "success");
     }
-
+    
+    // default
     showAlert("ดำเนินการสำเร็จ", "success");
     return res.data
+
   } catch (e) {
     console.log(e)
+    resetForm(formInsert);
     const error = e.response.data.msg || e.response.data.message
     return showAlert(error, "error");
   }
