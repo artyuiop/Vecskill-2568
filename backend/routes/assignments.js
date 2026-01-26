@@ -12,7 +12,7 @@ router.put('/:id', AddOrUpdateAssign)
 // ยกเลิกมอบหมาย
 router.delete('/:id', delAssign)
 
-// แสดงข้เอมูลที่ต้องประเมิน
+// แสดงข้อมูลที่ต้องประเมิน
 router.get('/',AuthCheck, ListAssign)
 
 

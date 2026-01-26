@@ -6,13 +6,13 @@ const { send, err } = require('../utils/help')
 exports.AddOrUpdateIndic = async (req, res) => {
   try {
     const { id } = req.params
-    const { eval_id, name, description, weight, type, allow_evidence, type_file} = req.body
+    const { eval_id, name, description, weight, type, allow_evidence, type_file } = req.body
 
     if (![name, eval_id, description, weight, type, allow_evidence].every(Boolean)) return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403)
 
     if (!['score', 'boolean'].includes(type)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
-    if(!['allow', 'not_allow'].includes(allow_evidence)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
-    
+    if (!['allow', 'not_allow'].includes(allow_evidence)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
+
 
     // type check
     if (allow_evidence === 'allow') {
@@ -42,7 +42,7 @@ exports.AddOrUpdateIndic = async (req, res) => {
       : (await db('indicators').insert({ eval_id, name, description, weight, type, allow_evidence, type_file }))[0]
 
 
-    send(res, {msg: id ? "แก้ไขตัวชี้วัดสำเร็จ!" : "เพิ่มตัวชี้วัดสำเร็จ!", indicId})
+    send(res, { msg: id ? "แก้ไขตัวชี้วัดสำเร็จ!" : "เพิ่มตัวชี้วัดสำเร็จ!", indicId })
   } catch (e) {
     err(res, e)
   }
@@ -79,7 +79,7 @@ exports.AddLevels = async (req, res) => {
     // Loop 1-4 Levels
     for (const { level, description } of req.body) {
       if (!level || level < 1 || level > 4) return send(res, { msg: "ระดับคะแนนต้อง 1-4" }, 403)
-      await db('levels').insert({indic_id,level,description})
+      await db('levels').insert({ indic_id, level, description })
     }
 
     send(res, { msg: "เพิ่มระดับคะแนนสำเร็จ" })
@@ -97,7 +97,7 @@ exports.ListLevels = async (req, res) => {
 
     if (levels.length === 0) return send(res, { msg: "ไม่พบระดับคะแนน" }, 404)
 
-    send(res, {indicator: +indic_id, levels})
+    send(res, { indicator: +indic_id, levels })
   } catch (e) {
     err(res, e)
   }
@@ -145,7 +145,13 @@ exports.AddEvidence = async (req, res) => {
 
     if (!rules[indic.type_file]?.()) return send(res, { msg: "ไฟล์หรือข้อมูลไม่ถูกต้อง" }, 400)
 
-    await db('evidence').insert({ indic_id,user_id: uid, description,file_path: file.filename,file_url: file_url})
+    await db('evidence').insert({
+      indic_id,
+      user_id: uid,
+      description,
+      file_path: file ? file.filname : null,
+      file_url: file_url || null
+    })
 
     send(res, { msg: "แนบหลักฐานสำเร็จ" })
   } catch (e) {
