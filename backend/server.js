@@ -3,6 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
 const app = express()
+const path = require('path')
 
 // import routes
 const auth = require('./routes/auth')
@@ -16,7 +17,7 @@ const assessments = require('./routes/assessments')
 app.use(express.json())
 app.use(cors())
 app.use(morgan('dev'))
-
+app.use(express.static('uploads'))
 
 // use routes
 app.use('/api/auth', auth)
@@ -26,6 +27,9 @@ app.use('/api/indicators', indicators)
 app.use('/api/assignments', assignments)
 app.use('/api/assessments', assessments)
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'uploads', '1769279618443.pdf'))
+})
 // Page NotFound
 app.use((req ,res) => {
     res.status(404).json({message: "Page NotFound 404"})
@@ -82,14 +86,14 @@ app.listen(5000, () => console.log('Server Runing! On Port 5000'))
 
 // 5.2.7 สามารถ Export ออกมาเป็นไฟล์ PDF ได้
 
-// 5.2.8 ดูความคิดเห็นของกรรมการที่ประเมินของตนเองได้
+// 5.2.8 ดูความคิดเห็นของกรรมการที่ประเมินของตนเองได้ ✅
 
 // 5.3 การพัฒนาระบบในส่วนของ กรรมการผู้ประเมิน (8 คะแนน)
 // 5.3.1 แสดงข้อมูลของผู้รับการประเมินที่ต้องประเมิน ✅
 
-// 5.3.2 แสดงหัวข้อ ตัวชี้วัด รายละเอียดข้อมูล และหลักฐานของผู้รับการประเมิน
+// 5.3.2 แสดงหัวข้อ ตัวชี้วัด รายละเอียดข้อมูล และหลักฐานของผู้รับการประเมิน ✅
 
-// 5.3.3 แสดงคะแนนที่ผู้รับการประเมิน ประเมินตนเอง
+// 5.3.3 แสดงคะแนนที่ผู้รับการประเมิน ประเมินตนเอง ✅
 
 // 5.3.4 ให้คะแนนผู้รับการประเมินตามตัวชี้วัด ✅
 

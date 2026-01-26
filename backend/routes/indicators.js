@@ -28,7 +28,7 @@ router.put('/levels/:indic_id',AuthCheck,RoleCheck(['admin']), changeLevels)
 
 // evidence
 // เพิ่มหลักฐานการประเมิน
-router.post('/evidence/:indic_id',AuthCheck,RoleCheck(['admin', 'evaluator']),upload.single('file'), AddEvidence)
+router.post('/evidence/:indic_id',AuthCheck, upload.single('file'), AddEvidence)
 
 // ยกเลิกหลักฐาน
 router.delete('/evidence/:evid_id',AuthCheck,RoleCheck(['admin', 'evaluator']), delEvid)

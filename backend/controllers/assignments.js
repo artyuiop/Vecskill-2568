@@ -1,72 +1,89 @@
-const db = require('../config/db')
-const {send , err}  = require('../utils/help')
-const { fn } = require('../utils/query')
+const db = require("../config/db");
+const { send, err } = require("../utils/help");
+const { fn } = require("../utils/query");
 
 // มอยหมาย & แก้ไขมอบหมาย
-exports.AddOrUpdateAssign = async(req , res) => {
-    try {
-        const {id} = req.params
-        const {eval_id , evaluatee_id , evaluator_id, position} = req.body
+exports.AddOrUpdateAssign = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { eval_id, evaluatee_id, evaluator_id, position } = req.body;
 
-        if(![eval_id , evaluatee_id , evaluator_id, position].every(Boolean)) return send(res, {msg: "กรุณากรอกข้อมูลให้ครบ"}, 403)
+    if (![eval_id, evaluatee_id, evaluator_id, position].every(Boolean))
+      return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403);
 
-        const [ee , et] = await Promise.all([
-            db('users').where({id: evaluatee_id}).first(),
-            db('users').where({id: evaluator_id}).first()
-        ])
-        
-        if(!ee || !et || ee.role !== 'evaluatee' || et.role !== 'evaluator') return send(res, {msg: "Role ไม่ถูกต้อง!"}, 403)
+    const [ee, et] = await Promise.all([
+      db("users").where({ id: evaluatee_id }).first(),
+      db("users").where({ id: evaluator_id }).first(),
+    ]);
 
-        const dup = await db('assignments').where({eval_id , evaluatee_id , evaluator_id}).first()
+    if (!ee || !et || ee.role !== "evaluatee" || et.role !== "evaluator")
+      return send(res, { msg: "Role ไม่ถูกต้อง!" }, 403);
 
-        if(dup) return send(res, {msg: "มีการมอบหมายแล้ว!"}, 403)
+    const dup = await db("assignments")
+      .where({ eval_id, evaluatee_id, evaluator_id })
+      .first();
 
-        await (id 
-            ? db('assignments').where({id}).update({ eval_id , evaluatee_id , evaluator_id, position })
-            : db('assignments').insert({ eval_id , evaluatee_id , evaluator_id, position })
-        )
+    if (dup) return send(res, { msg: "มีการมอบหมายแล้ว!" }, 403);
 
-        send(res, {msg: "มอบหมายสำเร็จ!!"})
-        } catch(e) {
-        err(res ,e)
-    }
-}
+    await (id
+      ? db("assignments")
+          .where({ id })
+          .update({ eval_id, evaluatee_id, evaluator_id, position })
+      : db("assignments").insert({
+          eval_id,
+          evaluatee_id,
+          evaluator_id,
+          position,
+        }));
+
+    send(res, { msg: "มอบหมายสำเร็จ!!" });
+  } catch (e) {
+    err(res, e);
+  }
+};
 
 // ยกเลิกการมอบหมาย
-exports.delAssign = async(req ,res) => {
-    try {
-        const {id} = req.params
+exports.delAssign = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-        const row = await db('assignments').where({id}).first()
-        if(!row) return send(res, {msg: "ไม่มีการมอบหมาย!!"}, 403)
+    const row = await db("assignments").where({ id }).first();
+    if (!row) return send(res, { msg: "ไม่มีการมอบหมาย!!" }, 403);
 
-        await db('assignments').where({id}).del()
-        send(res, {msg: "ยกเลิกการมอบหมายสำเร้จ!!"})
-    }catch(e) {
-        err(res ,e)
-    }
-}
+    await db("assignments").where({ id }).del();
+    send(res, { msg: "ยกเลิกการมอบหมายสำเร้จ!!" });
+  } catch (e) {
+    err(res, e);
+  }
+};
 
 // แสดงข้เอมูลที่ต้องประเมิน
-exports.ListAssign = async(req, res) => {
-    try {
-        const user = req.user
-        
-        const rows = await db('assignments as a')
-            .join('users as u', 'a.evaluatee_id', 'u.id')
-            .join('users as ut', 'a.evaluator_id', 'ut.id')
-            .join('evaluations as e', 'a.eval_id', 'e.id')
-            .modify(q => {
-                if(user.role === 'evaluator') q.where('a.evaluator_id', user.id)
-                else if(user.role === 'evaluatee') q.where('a.evaluatee_id', user.id)
-            })
-            .select(
-                'a.id as assign_id', 'a.position', 'a.evaluatee_id', 
-                fn('u', 'evaluatee_name'), 'a.evaluator_id', 
-                fn('ut', 'evaluator_name'), 'e.id as eval_id', 'e.title'
-            )
-        send(res, rows)
-    } catch(e) {
-        err(res, e)
-    }
-}
+exports.ListAssign = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const rows = await db("assignments as a")
+      .join("users as u", "a.evaluatee_id", "u.id")
+      .join("users as ut", "a.evaluator_id", "ut.id")
+      .join("evaluations as e", "a.eval_id", "e.id")
+      .join("assessments as asm", "a.id", "asm.assign_id")
+      .modify((q) => {
+        if (user.role === "evaluator") q.where("a.evaluator_id", user.id);
+        else if (user.role === "evaluatee") q.where("a.evaluatee_id", user.id);
+      })
+      .select(
+        "asm.status",
+        "a.id as assign_id",
+        "a.position",
+        "a.evaluatee_id",
+        fn("u", "evaluatee_name"),
+        "a.evaluator_id",
+        fn("ut", "evaluator_name"),
+        "e.id as eval_id",
+        "e.title",
+      );
+    send(res, rows);
+  } catch (e) {
+    err(res, e);
+  }
+};

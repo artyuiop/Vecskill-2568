@@ -12,7 +12,7 @@ exports.register = async (req, res) => {
     const user = await db('users').where({ username }).first()
     if (user) return send(res, { msg: "ชื่อผู้ใช้ซ้ำ" }, 403)
 
-    await db('users').insert({fname,lname,username,password})
+    await db('users').insert({ fname, lname, username, password })
     send(res, { msg: "สมัครสมาชิกสำเร็จ" })
   } catch (e) {
     err(res, e)
