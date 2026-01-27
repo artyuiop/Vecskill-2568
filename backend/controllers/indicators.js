@@ -149,7 +149,7 @@ exports.AddEvidence = async (req, res) => {
       indic_id,
       user_id: uid,
       description,
-      file_path: file ? file.filname : null,
+      file_path: file ? file.filename : null,
       file_url: file_url || null
     })
 

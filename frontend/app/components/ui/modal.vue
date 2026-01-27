@@ -12,6 +12,7 @@
 
             <div>
                 <slot></slot>
+                
             </div>
         </div>
     </dialog>

@@ -27,7 +27,7 @@
         </UiCard>
     </div>
 
-    <UiModal modal_id="modal_register" title="แก้ไขข้อมูลส่วนตัว">
+    <UiModal modal_id="modal_register" title="สมัครสมาชิก">
         <div class="grid grid-cols-2 gap-4 space-y-2">
             <div>
                 <UiInput v-model="formRegister.fname" label="ชื่อจริง" />

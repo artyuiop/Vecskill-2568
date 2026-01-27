@@ -1,5 +1,8 @@
 <template>
-    <div class="flex-end mb-2">
+    <div class="flex-between mb-2" v-if="isSearch">
+        <div>
+            <slot></slot>
+        </div>
         <label class="input">
             <i class="mdi mdi-magnify"></i>
             <input type="search" class="grow" placeholder="Search" v-model="searchQuery" />
@@ -7,7 +10,7 @@
     </div>
     <div class="w-full overflow-auto rounded-[20px] border border-gray-200/30">
         <table class="table table-zebra">
-            <thead>
+            <thead class="bg-neutral-100">
                 <tr>
                     <th class="border-b border-r border-gray-200/30 font-normal" v-for="col in cols">
                         <div :class="col.field === 'action' ? 'text-center' : ''">
@@ -37,7 +40,8 @@
 <script setup>
 const props = defineProps({
     cols: Array,
-    rows: Array
+    rows: Array,
+    isSearch: true
 })
 
 const searchQuery = ref('')

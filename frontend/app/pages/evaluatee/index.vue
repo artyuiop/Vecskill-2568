@@ -13,7 +13,7 @@
             <button class="btn btn-secondary btn-outline mt-6 shadow-sm" @click="openModalComment">
                 <i class="mdi mdi-comment text-lg"></i> ดูความคิดเห็นกรรมการ
             </button>
-            <button class="btn btn-primary btn-outline mt-6 shadow-sm">
+            <button class="btn btn-primary btn-outline mt-6 shadow-sm" @click="handleExportPdf">
                 <i class="mdi mdi-printer text-lg"></i> Export PDF
             </button>
         </div>
@@ -42,8 +42,9 @@
         </template>
     </UiTable>
 
-    <UiModal modal_id="modal_comment" :title="'ดูความคิดเห็นกรรมการ รอบ'">
-        {{ selectAssignName }}
+    <UiModal modal_id="modal_comment" :title="'ดูความคิดเห็นกรรมการ ' + selectAssignName">
+        <h1>ความคิดเห็นกรรมการ</h1>
+        <UiBadge color="badge-primary" :title="evaluator_comment?.[0]?.comment"/>
     </UiModal>
 
     <!-- Modal - ประเมินตนเอง และ แนบหลักฐาน -->
@@ -121,6 +122,7 @@ const fetchIndic = async (assignId) => {
         const res = await Fetch(
             `/api/assessments/getIndicatorProgress/${job.assign_id}`,
         );
+        console.log(res)
         progress.value = {
             progress: res.Progress,
             status: res.status,
@@ -136,10 +138,11 @@ const openModal = (row) => {
 };
 
 // Modal ความคิดเห็นกรรมการ
+const evaluator_comment = ref()
 const openModalComment = async () => {
     showModal("modal_comment");
     const res = await Fetch(`/api/assessments/get-comment/${selectAssignId.value}`)
-    console.log(res)
+    evaluator_comment.value = res
 };
 
 // function หาชื่อรอบประเมินตามที่เลือก
@@ -212,6 +215,10 @@ const handleSubmit = async () => {
 const handleFileChange = async (e) => {
     form_upload.value.file = e.target.files[0];
 };
+
+const handleExportPdf = async() => {
+
+}
 
 watch(selectAssignId, (newId) => {
     fetchIndic(newId);
