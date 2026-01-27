@@ -66,7 +66,7 @@ exports.ListAssign = async (req, res) => {
       .join("users as u", "a.evaluatee_id", "u.id")
       .join("users as ut", "a.evaluator_id", "ut.id")
       .join("evaluations as e", "a.eval_id", "e.id")
-      .join("assessments as asm", "a.id", "asm.assign_id")
+      .leftJoin("assessments as asm", "a.id", "asm.assign_id")
       .modify((q) => {
         if (user.role === "evaluator") q.where("a.evaluator_id", user.id);
         else if (user.role === "evaluatee") q.where("a.evaluatee_id", user.id);
@@ -87,3 +87,5 @@ exports.ListAssign = async (req, res) => {
     err(res, e);
   }
 };
+
+
