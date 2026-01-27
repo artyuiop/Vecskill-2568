@@ -10,31 +10,33 @@ export const dataStore = defineStore("data", {
     isLoaded: false, // ตัวช่วยเช็คสถานะ
   }),
   actions: {
-    async fetchAllData(force = false){
-        const auth = authStore()
-        if(!auth.token) return
-        
-        if(this.isLoaded && !force) return;
+    async fetchAllData(force = false) {
+      const auth = authStore();
+      if (!auth.token) return;
 
-        try{
-            const [evaluatee, evaluator, evaluation, assignments] = await Promise.all([
-                    Fetch('/api/users/getUserRole?role=evaluatee'),
-                    Fetch('/api/users/getUserRole?role=evaluator'),
-                    Fetch('/api/evaluations'),
-                    Fetch('/api/assignments'),
-                    // Fetch('/api/indicators')
-            ])
+      if (this.isLoaded && !force) return;
 
-            this.evaluatee = evaluatee;
-            this.evaluator = evaluator;
-            this.evaluation = evaluation;
-            this.assignments = assignments;
-            // this.indicator = indicator;
+      try {
+        const [evaluatee, evaluator, evaluation, assignments] =
+          await Promise.all([
+            Fetch("/api/users/getUserRole?role=evaluatee"),
+            Fetch("/api/users/getUserRole?role=evaluator"),
+            Fetch("/api/evaluations"),
+            Fetch("/api/assignments"),
+            // Fetch('/api/indicators')
+          ]);
 
-            this.isLoaded = true;
-        }catch(e){
-            return showAlert('ไม่สามารถแสดงข้อมูลได้', 'error')
-        }
-    }
+        this.evaluatee = evaluatee;
+        this.evaluator = evaluator;
+        this.evaluation = evaluation;
+        this.assignments = assignments;
+        // this.indicator = indicator;
+
+        this.isLoaded = true;
+      } catch (e) {
+        return showAlert("ไม่สามารถแสดงข้อมูลได้", "error");
+      }
+    },
+    
   },
 });

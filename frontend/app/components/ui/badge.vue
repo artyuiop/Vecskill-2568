@@ -1,6 +1,6 @@
 <template>
-  <button class="badge badge-soft" :class="color">
-    <i :class="icon"></i>
+  <button class="badge badge-soft hover:-translate-y-1 hover:cursor-pointer duration-200" :class="color">
+    <i v-if="icon" :class="icon"></i>
     {{ title }}
   </button>
 </template>

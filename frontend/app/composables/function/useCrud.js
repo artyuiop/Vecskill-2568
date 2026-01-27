@@ -21,7 +21,7 @@ export const Update = async (endpointID, formUpdate) => {
 
 export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
   try {
-    if (!useValidate(formInsert)) return;
+    // if (!useValidate(formInsert)) return;
     const res = await api.post(endpoint, formInsert);
 
     // ถ้าเป็นlogin mode
@@ -42,21 +42,20 @@ export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
       }
       return showAlert("เข้าสู่ระบบสำเร็จ", "success");
 
-    // ถ้าเป็นregister mode
+      // ถ้าเป็นregister mode
     } else if (IsloginRegister === "register") {
       resetForm(formInsert);
-      CloseModal('modal_register')
+      CloseModal("modal_register");
       return showAlert("สมัครสมาชิก", "success");
     }
-    
+
     // default
     showAlert("ดำเนินการสำเร็จ", "success");
-    return res.data
-
+    return res.data;
   } catch (e) {
-    console.log(e)
+    console.log(e);
     resetForm(formInsert);
-    const error = e.response.data.msg || e.response.data.message
+    const error = e.response.data.msg || e.response.data.message;
     return showAlert(error, "error");
   }
 };
@@ -67,9 +66,9 @@ export const Delete = async (endpoint, id) => {
       const res = await api.delete(`${endpoint}/${id}`);
       showAlert("ดำเนินการลบข้อมูลสำเร็จ", "success");
 
-      const store = dataStore()
+      const store = dataStore();
       await store.fetchAllData(true);
-      
+
       return;
     }
   } catch (e) {

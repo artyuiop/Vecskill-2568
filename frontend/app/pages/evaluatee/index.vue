@@ -112,6 +112,7 @@ const cols = [
     { field: "action", label: "จัดการ" },
 ];
 
+// ดึงข้อมูล indicator
 const fetchIndic = async (assignId) => {
     if (!assignId) return;
 
@@ -135,8 +136,10 @@ const openModal = (row) => {
 };
 
 // Modal ความคิดเห็นกรรมการ
-const openModalComment = () => {
+const openModalComment = async () => {
     showModal("modal_comment");
+    const res = await Fetch(`/api/assessments/get-comment/${selectAssignId.value}`)
+    console.log(res)
 };
 
 // function หาชื่อรอบประเมินตามที่เลือก
@@ -188,8 +191,11 @@ const handleSubmit = async () => {
         return showAlert('กรุณาแนบไฟล์หลักฐาน', "error")
     }
 
-    await Insert(`/api/assessments/give-score/${assignId}`, form_score.value);
+    // const resa = await api.post(`/api/assessments/give-score/${assignId}`, form_score.value)
+    // console.log(resa.da)
 
+    await Insert(`/api/assessments/give-score/${assignId}`, form_score.value);
+    // console.log(resGive.data)
     if (type_file === "url") {
         formdata.append("file_url", form_upload.value.file_url);
     }else {
@@ -197,8 +203,9 @@ const handleSubmit = async () => {
             formdata.append("file", form_upload.value.file);
         }
     }
-
+    
     const res = await Insert(`/api/indicators/evidence/${indicId}`, formdata);
+    fetchIndic(assignId)
     CloseModal('modal_self')
 }
 

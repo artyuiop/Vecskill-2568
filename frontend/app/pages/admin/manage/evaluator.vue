@@ -1,8 +1,7 @@
 <template>
-    <UiHeader title="จัดการกรรมการผู้ประเมิน" description="manage evaluator">
+    <UiHeader title="จัดการผู้รับการประเมิน" description="manage evaluator">
         <UiButton title="เพิ่มข้อมูล" color="btn-primary btn-soft" @click="openModal('create')" />
     </UiHeader>
-
     <UiTable :cols="cols" :rows="data_users">
         <template #action="{ row }">
             <div class="space-x-2">
@@ -12,7 +11,7 @@
             </div>
         </template>
         <template #role="{ row }">
-            <UiBadge color="badge-primary" icon="mdi mdi-account" title="กรรมการผู้ประเมิน" />
+            <UiBadge color="badge-primary" icon="mdi mdi-account" title="ผู้รับประเมิน" />
         </template>
         <template #fullname="{ row }">
             <div class="flex items-center gap-3">
@@ -22,7 +21,7 @@
                     </div>
                 </div>
                 <div>
-                    <div class="font-bold">{{ row.fname + ' ' + row.lname }}</div>
+                    <div class="font-bold">{{ row.fname + " " + row.lname }}</div>
                     <div class="text-sm opacity-50">{{ row.username }}</div>
                 </div>
             </div>
@@ -41,15 +40,14 @@
             <button class="btn btn-primary" @click="handleSubmit">ตกลง</button>
         </div>
     </UiModal>
-
 </template>
 
 <script setup>
 definePageMeta({
-    layout: 'main-layout'
-})
+    layout: "main-layout",
+});
 const store = dataStore();
-const endpoint = '/api/users'
+const endpoint = "/api/users";
 
 const cols = [
     { field: "fullname", label: "ชื่อ-นามสกุล" },
@@ -58,41 +56,39 @@ const cols = [
 ];
 
 // state
-const mode = ref('create') // ตัวแปรคุมโหมด create & update
+const mode = ref("create"); // ตัวแปรคุมโหมด create & update
 const formRef = ref({
     id: null,
     fname: "",
     lname: "",
     username: "",
     password: "",
-    role: "evaluator"
-})
+    role: "evaluator",
+});
 
 const openModal = (type, row = null) => {
-    mode.value = type
+    mode.value = type;
 
-    if (type === 'create') {
-        resetForm(formRef.value)
-        formRef.value.role = "evaluator"
+    if (type === "create") {
+        resetForm(formRef.value);
+        formRef.value.role = "evaluator";
     } else {
-        formRef.value = { ...row }
+        formRef.value = { ...row };
     }
 
-    showModal('modal_evaluator')
-}
+    showModal("modal_evaluator");
+};
 
 const handleSubmit = async () => {
-    if (mode.value === 'create') {
-        await Insert(endpoint, formRef.value)
+    if (mode.value === "create") {
+        await Insert(endpoint, formRef.value);
     } else {
-        await Update(`${endpoint}/${formRef.value.id}`, formRef.value)
+        await Update(`${endpoint}/${formRef.value.id}`, formRef.value);
     }
-    // console.log(formRef.value)
-
-    await store.fetchAllData(true)
-    CloseModal('modal_evaluator')
-}
+    await store.fetchAllData(true);
+    CloseModal("modal_evaluator");
+};
 
 // โหลด ข้อมูล evaluator
-const data_users = computed(() => store.evaluator)
+const data_users = computed(() => store.evaluator);
 </script>

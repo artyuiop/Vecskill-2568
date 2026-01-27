@@ -23,10 +23,7 @@ export default defineNuxtConfig({
         usePolling: true
       }
     },
-    
   },
-
-  
 
   modules: ['@pinia/nuxt']
 })

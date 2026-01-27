@@ -9,6 +9,5 @@ api.interceptors.request.use((req) => {
     if(auth.token){
         req.headers.Authorization = `Bearer ${auth.token}`
     }
-
     return req
 })

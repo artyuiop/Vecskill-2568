@@ -23,7 +23,7 @@
   </nav>
 
   <UiModal modal_id="update_profile" title="แก้ไขข้อมูลส่วนตัว">
-    <div class="grid grid-2 gap-4">
+    <div class="grid grid-cols-2 gap-4 space-y-2">
       <div>
         <UiInput v-model="formUpdateProfile.fname" label="ชื่อจริง" />
         <UiInput v-model="formUpdateProfile.lname" label="นามสกุล" />
@@ -33,8 +33,9 @@
         <UiInput v-model="formUpdateProfile.password" label="รหัสผ่าน" />
       </div>
     </div>
-    <div class="flex justify-end mt-2">
-      <button class="btn btn-neutral btn-sm" @click="">ตกลง</button>
+    <div class="flex justify-end mt-2 space-x-2">
+      <UiButton title="ยกเลิก" color="btn-neutral btn-soft" @click="CloseModal('update_profile')" />
+      <UiButton title="ตกลง" color="btn-primary" @click="" />
     </div>
   </UiModal>
 
@@ -44,9 +45,12 @@
 const formUpdateProfile = ref({})
 const auth = authStore()
 
-onMounted(() => {
-  auth.getProfile()
-  formUpdateProfile.value = auth.profile
-  console.log(auth.profile)
+onMounted(async () => {
+  // const res = await Fetch('/api/users/detail')
+  // console.log(res)
+  // formUpdateProfile.value = res
+  // auth.getProfile()
+  // formUpdateProfile.value = auth.profile
+  // console.log(auth.profile)
 })
 </script>

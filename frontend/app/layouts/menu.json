@@ -32,8 +32,7 @@
     {
       "name": "Main",
       "children": [
-        { "name": "หน้าหลัก", "path": ""},
-        { "name": "ผลลัพธ์การประเมิน", "path": ""}
+        { "name": "หน้าหลัก", "path": "/evaluator"}
       ]
     }
   ],
