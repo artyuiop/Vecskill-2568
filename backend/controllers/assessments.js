@@ -1,6 +1,6 @@
 const db = require("../config/db");
 const { send, err } = require("../utils/help");
-const { fn } = require("../utils/query");
+const { fn, trackStatusFuc } = require("../utils/query");
 
 // กรอกคะแนน & บันทึกคะแนน
 exports.giveScore = async (req, res) => {
@@ -10,8 +10,7 @@ exports.giveScore = async (req, res) => {
     const uid = req.user.id;
 
     const assign = await db("assignments").where({ id: assign_id }).first();
-    if (!assign) return send(res, { msg: "ไม่พบ assignment" }, 404);
-
+    if (!assign) return send(res, { msg: "ไม่พบ assignment" }, 404)
     // ระบุ role
     let role = null;
     if (assign.evaluatee_id === uid) role = "self";
@@ -92,11 +91,11 @@ exports.getIndicatorProgress = async (req, res) => {
       );
 
     // Data indicators
-    const map = {};
+    const data = {};
 
     rows.forEach((r) => {
-      if (!map[r.id]) {
-        map[r.id] = {
+      if (!data[r.id]) {
+        data[r.id] = {
           ...r,
           level: [],
         };
@@ -104,16 +103,16 @@ exports.getIndicatorProgress = async (req, res) => {
 
       // push levels Data
       if (r.level_id) {
-        map[r.id].level.push({
+        data[r.id].level.push({
           id: r.level_id,
           level: r.level,
           descripton: r.level_description,
         });
       }
     });
-
+        
     // console.log(map)
-    const indicator = Object.values(map);
+    const indicator = Object.values(rows);
     // console.log(indicator)
     const done = indicator.filter((i) => i.status === "เสร็จสิ้น").length;
     const All = indicator.length;
@@ -180,54 +179,104 @@ exports.getComments = async (req, res) => {
   }
 };
 
+// ติดตามสถานะของ ผู้รับประเมิน
 exports.trackStatus = async (req, res) => {
   try {
-    const { assign_id } = req.params;
-    const uid = req.user.id;
+    const { eval_id, type } = req.params;
+
+    const data = {
+      self: ['self', 'evaluatee_id'],
+      committee: ['committee', 'evaluator_id']
+    };
+
+    // console.log(data[type]);
+    
+    if (!data[type]) return send(res, { msg: 'type ไม่ถูกต้อง' }, 400);
+    const [role, field] = data[type];
+
+    send(res, { [type]: await trackStatusFuc(eval_id, role, field) });
   } catch (e) {
     err(res, e);
   }
 };
 
+
 // แสดงคะแนนที่ผู้รับการประเมิน ประเมินตนเอง & หัวข้อ ตัวชี้วัด รายละเอียดข้อมูล และหลักฐาน
 exports.getEvaluationDetail = async (req, res) => {
   try {
     const { assign_id, user_id } = req.params;
+    const etid = req.user.id
 
-    const indicators = await db("indicators as i")
-      .leftJoin("evidence as e", function () {
-        this.on("i.id", "=", "e.indic_id").andOn(
-          "e.user_id",
-          "=",
-          db.raw("?", [user_id]),
-        );
+    const assign = await db('assignments').where({id: assign_id, evaluatee_id: user_id, evaluator_id: etid}).first()
+
+    if(!assign) return send(res, { msg: "ไม่มีสิท" }, 403);
+
+    const rows = await db("assignments as a")
+      .join('indicators as i', 'i.eval_id', 'a.eval_id')
+      .leftJoin('levels as lv', 'lv.indic_id', 'i.id')
+      .leftJoin('evidence as ed', q => {
+        q.on('ed.indic_id', '=', 'i.id')
+          .andOn('ed.user_id', '=', db.raw('?', [user_id]))
       })
+      .where({ 'a.id': assign_id})
       .select(
         "i.id",
         "i.name",
         "i.description",
-        "e.file_path",
-        "e.file_url",
-        "e.description as evidence_desc",
+        'i.type',
+        "ed.file_path",
+        "ed.file_url",
+        "ed.description as evidence_desc",
+        'lv.id as level_id',
+        'lv.level',
+        'lv.description as level_description'
       );
+    const data = {};
 
-    const levels = await db("levels").select("*").orderBy("id", "asc");
+    rows.forEach((r) => {
+      if (!data[r.id]) {
+        data[r.id] = {
+          ...r,
+          level: [],
+        };
+      }
 
-    const result = indicators.map((indic) => {
-      return {
-        ...indic,
-        hasIt: null,
-        levels: levels
-          .filter((lvl) => lvl.indic_id === indic.id)
-          .map((lvl) => ({
-            ...lvl,
-          })),
-      };
+      // push levels Data
+      if (r.level_id) {
+        data[r.id].level.push({
+          id: r.level_id,
+          level: r.level,
+          descripton: r.level_description,
+        });
+      }
     });
 
-    res.json({ indicator: result });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Server Error" });
+    const indicators = Object.values(data)
+    res.json({ indicators });
+  } catch (e) {
+    err(res, e)
   }
 };
+
+// ยืนยันและส่งผลการประเมิน
+exports.submitAssess = async(req , res) => { 
+  try {
+    const { assign_id } = req.params
+    const uid = req.user.id
+
+    const [assign] = await db('assignments').where({id: assign_id, evaluator_id: uid})
+
+    if(!assign) return send(res, {msg: "ไม่มีสิทประเมิน!!"}, 403)
+
+    const [{total}] = await db('indicators').where({ eval_id: assign.eval_id }).count('* as total')
+    const [{done}] = await db('assessments').where({assign_id , role: 'committee'}).countDistinct('indic_id as done')
+    
+    // console.log( total)
+    if(total > done) return send(res, {msg: "กรอกตัวชี้วัดยังไม่ครบ!!"}, 403)
+
+    await db('assessments').where({assign_id , role: 'committee'}).update({'status': 'completed'})
+    send(res, 'ok')
+    } catch(e) {
+    err(res, e) 
+  }
+}

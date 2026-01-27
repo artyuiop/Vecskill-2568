@@ -27,9 +27,7 @@ app.use('/api/indicators', indicators)
 app.use('/api/assignments', assignments)
 app.use('/api/assessments', assessments)
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'uploads', '1769279618443.pdf'))
-})
+
 // Page NotFound
 app.use((req ,res) => {
     res.status(404).json({message: "Page NotFound 404"})
@@ -65,9 +63,9 @@ app.listen(5000, () => console.log('Server Runing! On Port 5000'))
 
 // 5.1.10 แสดงผลสรุปการประเมินรายกรรมการ (ประเมินผู้รับการประเมินแต่ละคน)
 
-// 5.1.11 ติดตามสถานะการประเมินของกรรมการแต่ละคนได้
+// 5.1.11 ติดตามสถานะการประเมินของกรรมการแต่ละคนได้ ✅
 
-// 5.1.12 ติดตามสถานะการประเมินของผู้รับการประเมินได้
+// 5.1.12 ติดตามสถานะการประเมินของผู้รับการประเมินได้ ✅
 
 // 5.1.13 แสดงรายงานผลการประเมินรายบุคคลได้
 
@@ -103,4 +101,4 @@ app.listen(5000, () => console.log('Server Runing! On Port 5000'))
 
 // 5.3.7 ลงนามการประเมิน โดยแนบลายเซ็น ✅
 
-// 5.3.8 ยืนยันและส่งผลการประเมิน
+// 5.3.8 ยืนยันและส่งผลการประเมิน ✅
