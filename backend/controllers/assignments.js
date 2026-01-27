@@ -27,14 +27,14 @@ exports.AddOrUpdateAssign = async (req, res) => {
 
     await (id
       ? db("assignments")
-          .where({ id })
-          .update({ eval_id, evaluatee_id, evaluator_id, position })
+        .where({ id })
+        .update({ eval_id, evaluatee_id, evaluator_id, position })
       : db("assignments").insert({
-          eval_id,
-          evaluatee_id,
-          evaluator_id,
-          position,
-        }));
+        eval_id,
+        evaluatee_id,
+        evaluator_id,
+        position,
+      }));
 
     send(res, { msg: "มอบหมายสำเร็จ!!" });
   } catch (e) {
@@ -57,19 +57,28 @@ exports.delAssign = async (req, res) => {
   }
 };
 
-// แสดงข้อมูลที่ต้องประเมิน
+// แสดงข้เอมูลที่ต้องประเมิน
 exports.ListAssign = async (req, res) => {
   try {
     const user = req.user;
+
     const rows = await db("assignments as a")
       .join("users as u", "a.evaluatee_id", "u.id")
       .join("users as ut", "a.evaluator_id", "ut.id")
       .join("evaluations as e", "a.eval_id", "e.id")
+      .leftJoin("assessments as asm_self", (q) => {
+        q.on("a.id", "asm_self.assign_id").andOn("asm_self.role", db.raw("'self'"));
+      })
+      .leftJoin("assessments as asm_committee", (q) => {
+        q.on("a.id", "asm_committee.assign_id").andOn("asm_committee.role", db.raw("'committee'"));
+      })
       .modify((q) => {
         if (user.role === "evaluator") q.where("a.evaluator_id", user.id);
         else if (user.role === "evaluatee") q.where("a.evaluatee_id", user.id);
       })
       .select(
+        "asm_self.status as self_status",
+        "asm_committee.status as committee_status",
         "a.id as assign_id",
         "a.position",
         "a.evaluatee_id",
@@ -78,7 +87,8 @@ exports.ListAssign = async (req, res) => {
         fn("ut", "evaluator_name"),
         "e.id as eval_id",
         "e.title",
-      );
+      )
+      .groupBy("a.id");
     send(res, rows);
   } catch (e) {
     err(res, e);
