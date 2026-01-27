@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost:3306
--- Generation Time: Jan 15, 2026 at 04:39 AM
--- Server version: 8.0.30
--- PHP Version: 8.1.10
+-- Host: db
+-- Generation Time: Jan 23, 2026 at 03:39 PM
+-- Server version: 12.0.2-MariaDB-ubu2404
+-- PHP Version: 8.3.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -28,11 +28,11 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `assessments` (
-  `id` int NOT NULL,
-  `indic_id` int NOT NULL,
-  `assign_id` int NOT NULL,
+  `id` int(11) NOT NULL,
+  `indic_id` int(11) NOT NULL,
+  `assign_id` int(11) NOT NULL,
   `role` enum('self','committee') NOT NULL DEFAULT 'self',
-  `score` int DEFAULT NULL,
+  `score` int(11) DEFAULT NULL,
   `bool_score` enum('have','not_have') DEFAULT NULL,
   `status` enum('in_progress','completed') NOT NULL DEFAULT 'in_progress'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -44,13 +44,21 @@ CREATE TABLE `assessments` (
 --
 
 CREATE TABLE `assignments` (
-  `id` int NOT NULL,
-  `eval_id` int NOT NULL,
-  `evaluatee_id` int NOT NULL,
-  `evaluator_id` int NOT NULL,
-  `position` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `id` int(11) NOT NULL,
+  `eval_id` int(11) NOT NULL,
+  `evaluatee_id` int(11) NOT NULL,
+  `evaluator_id` int(11) NOT NULL,
+  `position` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `assignments`
+--
+
+INSERT INTO `assignments` (`id`, `eval_id`, `evaluatee_id`, `evaluator_id`, `position`, `created_at`) VALUES
+(1, 1, 7, 1, 'ประธาน', '2026-01-20 04:16:01'),
+(2, 1, 6, 4, 'หัวหน้ากลุ่ม', '2026-01-22 16:15:10');
 
 -- --------------------------------------------------------
 
@@ -59,7 +67,7 @@ CREATE TABLE `assignments` (
 --
 
 CREATE TABLE `evaluations` (
-  `id` int NOT NULL,
+  `id` int(11) NOT NULL,
   `title` varchar(50) NOT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL
@@ -70,7 +78,8 @@ CREATE TABLE `evaluations` (
 --
 
 INSERT INTO `evaluations` (`id`, `title`, `start_date`, `end_date`) VALUES
-(1, 'รอบที่1', '2026-01-12', '2026-01-16');
+(1, 'รอบที่1', '2026-01-21', '2026-01-22'),
+(3, 'รอบที่2', '2026-01-12', '2026-01-16');
 
 -- --------------------------------------------------------
 
@@ -79,11 +88,11 @@ INSERT INTO `evaluations` (`id`, `title`, `start_date`, `end_date`) VALUES
 --
 
 CREATE TABLE `evidence` (
-  `id` int NOT NULL,
-  `indic_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `file_path` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `file_url` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `id` int(11) NOT NULL,
+  `indic_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `file_path` varchar(50) DEFAULT NULL,
+  `file_url` varchar(50) DEFAULT NULL,
   `description` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -94,20 +103,23 @@ CREATE TABLE `evidence` (
 --
 
 CREATE TABLE `indicators` (
-  `id` int NOT NULL,
-  `eval_id` int NOT NULL,
+  `id` int(11) NOT NULL,
+  `eval_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `description` varchar(50) NOT NULL,
   `weight` float NOT NULL,
-  `type` enum('score','boolean') NOT NULL
+  `type` enum('score','boolean') NOT NULL,
+  `allow_evidence` enum('allow','not_allow') NOT NULL DEFAULT 'not_allow',
+  `type_file` enum('pdf','png','jpg','url') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `indicators`
 --
 
-INSERT INTO `indicators` (`id`, `eval_id`, `name`, `description`, `weight`, `type`) VALUES
-(1, 1, 'ตัวชี้วัด1', 'อธิบาย', 1, 'score');
+INSERT INTO `indicators` (`id`, `eval_id`, `name`, `description`, `weight`, `type`, `allow_evidence`, `type_file`) VALUES
+(1, 1, 'ตัวชี้วัด1', 'อธิบาย', 1, 'score', 'allow', 'png'),
+(2, 1, 'ตัวชี้วัด2', 'อธิบาย', 1, 'score', 'not_allow', NULL);
 
 -- --------------------------------------------------------
 
@@ -116,11 +128,25 @@ INSERT INTO `indicators` (`id`, `eval_id`, `name`, `description`, `weight`, `typ
 --
 
 CREATE TABLE `levels` (
-  `id` int NOT NULL,
-  `indic_id` int NOT NULL,
-  `level` int NOT NULL,
+  `id` int(11) NOT NULL,
+  `indic_id` int(11) NOT NULL,
+  `level` int(11) NOT NULL,
   `description` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `levels`
+--
+
+INSERT INTO `levels` (`id`, `indic_id`, `level`, `description`) VALUES
+(1, 1, 1, '123'),
+(2, 1, 2, 'พอใช้'),
+(3, 1, 3, 'ดี'),
+(4, 1, 4, 'ดีมาก'),
+(5, 2, 1, 'แย่มาก'),
+(6, 2, 2, 'พอใช้'),
+(7, 2, 3, 'ดี'),
+(8, 2, 4, 'ดีมาก');
 
 -- --------------------------------------------------------
 
@@ -129,8 +155,8 @@ CREATE TABLE `levels` (
 --
 
 CREATE TABLE `signatures` (
-  `id` int NOT NULL,
-  `assign_id` int NOT NULL,
+  `id` int(11) NOT NULL,
+  `assign_id` int(11) NOT NULL,
   `sign_file` longtext NOT NULL,
   `comment` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -142,12 +168,12 @@ CREATE TABLE `signatures` (
 --
 
 CREATE TABLE `users` (
-  `id` int NOT NULL,
+  `id` int(11) NOT NULL,
   `fname` varchar(100) DEFAULT NULL,
   `lname` varchar(100) DEFAULT NULL,
   `username` varchar(100) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  `role` enum('evaluator','evaluatee','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'evaluatee'
+  `role` enum('evaluator','evaluatee','admin') DEFAULT 'evaluatee'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -155,11 +181,12 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `fname`, `lname`, `username`, `password`, `role`) VALUES
-(1, 'thxpakorn', 'khambo', 'tee', '1234', 'evaluatee'),
+(1, 'thxpakorn', 'khambo', 'tee', '1234', 'evaluator'),
 (4, 'thxpakorn', 'khambo', 'pet', '1234', 'evaluator'),
 (5, 'thxpakorn', 'khambo', 'toon', '1234', 'admin'),
 (6, 'thxpakorn', 'khambo', 'aaa', '1234', 'evaluatee'),
-(7, 'thxpakorn', 'khambo', 'adaa', '1234', 'evaluatee');
+(7, 'thxpakorn', 'khambo', 'adaa', '1234', 'evaluatee'),
+(9, 'qwe', 'qwe', 'qwe', 'qwe', 'evaluatee');
 
 --
 -- Indexes for dumped tables
@@ -231,43 +258,43 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `assignments`
 --
 ALTER TABLE `assignments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `evaluations`
 --
 ALTER TABLE `evaluations`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `evidence`
 --
 ALTER TABLE `evidence`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `indicators`
 --
 ALTER TABLE `indicators`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `levels`
 --
 ALTER TABLE `levels`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `signatures`
 --
 ALTER TABLE `signatures`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables
@@ -305,7 +332,7 @@ ALTER TABLE `indicators`
 -- Constraints for table `levels`
 --
 ALTER TABLE `levels`
-  ADD CONSTRAINT `levels_ibfk_1` FOREIGN KEY (`indic_id`) REFERENCES `indicators` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+  ADD CONSTRAINT `levels_ibfk_1` FOREIGN KEY (`indic_id`) REFERENCES `indicators` (`id`);
 
 --
 -- Constraints for table `signatures`
