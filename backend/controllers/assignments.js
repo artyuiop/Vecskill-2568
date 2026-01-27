@@ -57,31 +57,40 @@ exports.delAssign = async (req, res) => {
   }
 };
 
-// แสดงข้เอมูลที่ต้องประเมิน
+// แสดงข้อมูลที่ต้องประเมิน
 exports.ListAssign = async (req, res) => {
   try {
-    const user = req.user;
+    const { id, role } = req.user;
+    const isEvaluator = role === "evaluator";
 
     const rows = await db("assignments as a")
       .join("users as u", "a.evaluatee_id", "u.id")
       .join("users as ut", "a.evaluator_id", "ut.id")
       .join("evaluations as e", "a.eval_id", "e.id")
-      .join("assessments as asm", "a.id", "asm.assign_id")
-      .modify((q) => {
-        if (user.role === "evaluator") q.where("a.evaluator_id", user.id);
-        else if (user.role === "evaluatee") q.where("a.evaluatee_id", user.id);
+      .join("indicators as i", "i.eval_id", "a.eval_id")
+      .leftJoin("assessments as asm", function () {
+        this.on("asm.assign_id", "a.id")
+          .andOn("asm.indic_id", "i.id")
+          .andOn(
+            "asm.role",
+            db.raw("?", [isEvaluator ? "committee" : "self"])
+          );
       })
+      .where(isEvaluator ? "a.evaluator_id" : "a.evaluatee_id", id)
+      .groupBy("a.id")
       .select(
-        "asm.status",
         "a.id as assign_id",
         "a.position",
-        "a.evaluatee_id",
+        'u.id as evalautee_id',
+        'ut.id as evaluator_id',
         fn("u", "evaluatee_name"),
-        "a.evaluator_id",
         fn("ut", "evaluator_name"),
         "e.id as eval_id",
         "e.title",
+        "asm.id as assess_id",
+        "asm.status"
       );
+
     send(res, rows);
   } catch (e) {
     err(res, e);
