@@ -1,15 +1,28 @@
 <template>
+  <UiAlert :title="alert.title" :status="alert.status" :show="alert.show" />
   <NuxtLayout>
-    <NuxtPage/>
+    <NuxtPage />
   </NuxtLayout>
 </template>
 
 <script setup>
-import { dataStore } from './stores/dataStore';
-const data = dataStore()
+import { dataStore } from '#imports';
+const store = dataStore();
+const auth = authStore();
+onMounted(() => {
+  if (auth.token) {
+    store.fetchAllData();
+  }
+});
 
-
-onMounted(async () => {
-  await data.fetchEvaluatee();
-})
+watch(() => auth.token, (newToken) => {
+  if (newToken) {
+    // บังคับดึงข้อมูลใหม่เสมอเมื่อมีการ login ใหม่
+    store.fetchAllData(true); 
+  } else {
+    // ถ้า logout ก็ล้างข้อมูลทิ้ง
+    store.$reset();
+  }
+}, { immediate: true });
+// console.log = function(){}
 </script>

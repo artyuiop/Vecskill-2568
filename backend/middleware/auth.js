@@ -18,7 +18,7 @@ exports.AuthCheck  = async(req ,res , next) => {
         console.log(req.user);
         next()
     } catch(e) {
-        err(res ,e)
+        err(res ,e, 'Token ไม่ถูก')
     }
 }
 

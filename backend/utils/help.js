@@ -4,3 +4,4 @@ const err = (res, e , msg = 'Server Error') => (console.log(e), send(res, {msg},
 
 // ทำ status true fasle
 module.exports = {send , err}
+

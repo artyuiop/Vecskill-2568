@@ -1,35 +1,48 @@
 const db = require('../config/db')
 const { send, err } = require('../utils/help')
+const { exist } = require('../utils/query')
 
 
 // เพิ่มตัวชี้วัด && แก้ไข
 exports.AddOrUpdateIndic = async (req, res) => {
   try {
     const { id } = req.params
-    const { eval_id, name, description, weight, type } = req.body
+    const { eval_id, name, description, weight, type, allow_evidence, type_file } = req.body
 
-    if (![name, eval_id, description, weight, type].every(Boolean)) return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403)
+    if (![name, eval_id, description, weight, type, allow_evidence].every(Boolean)) return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403)
 
     if (!['score', 'boolean'].includes(type)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
-    
+    if (!['allow', 'not_allow'].includes(allow_evidence)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
+
+
+    // type check
+    if (allow_evidence === 'allow') {
+      if (!type_file) {
+        return send(res, { msg: "กรุณาระบุชนิดไฟล์หลักฐาน" }, 403)
+      }
+
+      // เช็คว่าตรงไหม
+      if (!['png', 'image', 'url'].includes(type_file)) {
+        return send(res, { msg: "type_file ไม่ถูกต้อง!" }, 403)
+      }
+    }
+
+    // ถ้าไม่อนุญาติ
+    if (allow_evidence === 'not_allow' && type_file) {
+      return send(res, { msg: "ตัวชี้วัดนี้ไม่อนุญาตให้แนบหลักฐาน" }, 403)
+    }
+
 
     // evalCheck
-    const Eval = await db('evaluations').where({ id: eval_id }).first()
-    if (!Eval) return send(res, { msg: "ไม่มีรอบการประเมินนี้!!" }, 403)
+    const Eval = await exist(res, 'evaluations', {id: eval_id})
 
-    if (id) {
-      // UPDATE
-      const indic = await db('indicators').where({ id }).first()
-      if (!indic) return send(res, { msg: "ไม่พบตัวชี้วัด!" }, 403)
 
-      await db('indicators').where({ id }).update({ eval_id, name, description, weight, type })
+    const indicId = id
+      ? (await db('indicators').where({ id }).update({ eval_id, name, description, weight, type, allow_evidence, type_file }), +id)
+      : (await db('indicators').insert({ eval_id, name, description, weight, type, allow_evidence, type_file }))[0]
 
-      send(res, { msg: "แก้ไขตัวชี้วัดสำเร็จ" })
-    } else {
-      // INSERT
-      await db('indicators').insert({eval_id, name, description,weight,type})
-      send(res, { msg: "เพิ่มตัวชี้วัดสำเร็จ" })
-    }
+
+    send(res, { msg: id ? "แก้ไขตัวชี้วัดสำเร็จ!" : "เพิ่มตัวชี้วัดสำเร็จ!", indicId })
   } catch (e) {
     err(res, e)
   }
@@ -50,21 +63,22 @@ exports.ListIndic = async (req, res) => {
 
 
 // Levels
+
+// เพิ่มสเกลคะแนน
 exports.AddLevels = async (req, res) => {
   try {
     const { indic_id } = req.params
 
-    const indicator = await db('indicators').where({ id: indic_id }).first()
+    const indicator = await exist(res, 'indicators', {id: indic_id})
     const Level = await db('levels').where({ indic_id }).first()
 
     if (Level) return send(res, { msg: "มีตัวชี้วัดอยู่แล้ว!" }, 403)
-    if (!indicator) return send(res, { msg: "ไม่มีตัวชี้วัด" }, 403)
     if (indicator.type !== 'score') return send(res, { msg: "type ไม่ถูกต้อง" }, 403)
 
     // Loop 1-4 Levels
     for (const { level, description } of req.body) {
       if (!level || level < 1 || level > 4) return send(res, { msg: "ระดับคะแนนต้อง 1-4" }, 403)
-      await db('levels').insert({indic_id,level,description})
+      await db('levels').insert({ indic_id, level, description })
     }
 
     send(res, { msg: "เพิ่มระดับคะแนนสำเร็จ" })
@@ -73,7 +87,7 @@ exports.AddLevels = async (req, res) => {
   }
 }
 
-
+// ดูตัวสเกลตามตัวชี้วัด
 exports.ListLevels = async (req, res) => {
   try {
     const { indic_id } = req.params
@@ -82,13 +96,13 @@ exports.ListLevels = async (req, res) => {
 
     if (levels.length === 0) return send(res, { msg: "ไม่พบระดับคะแนน" }, 404)
 
-    send(res, {indicator: +indic_id, levels})
+    send(res, { indicator: +indic_id, levels })
   } catch (e) {
     err(res, e)
   }
 }
 
-
+// แก้ไขสเกลคะแนน
 exports.changeLevels = async (req, res) => {
   try {
     const { indic_id } = req.params
@@ -105,49 +119,52 @@ exports.changeLevels = async (req, res) => {
 
 
 // evidence
+
+// เพิ่มหลักฐาน
 exports.AddEvidence = async (req, res) => {
   try {
     const { indic_id } = req.params
     const uid = req.user.id
-    const file = req.file
     const { file_url, description } = req.body
+    const file = req.file
 
-    const indic = await db('indicators').where({ id: indic_id }).first()
+    const indic = await exist(res, 'indicators', {id: indic_id})
+    if (indic.allow_evidence !== 'allow') return send(res, { msg: "ไม่สามารถแนบหลักฐานได้" }, 403)
 
-    const evidence = await db('evidence').where({ indic_id, user_id: uid }).first()
+    const dup = await db('evidence').where({ indic_id, user_id: uid }).first()
+    if (dup) return send(res, { msg: "มีหลักฐานแล้ว กรุณาลบก่อน" }, 403)
 
-    if (evidence) return send(res, { msg: "มีหลักฐานแล้วกรุณาลบก่อน" }, 403)
-    if (!indic) return send(res, { msg: "ไม่พบตัวชี้วัด" }, 401)
-
-    // console.log(file)
-    // file upload
-    if (file) {
-      await db('evidence').insert({ indic_id, user_id: uid,file_path: file.filename ,description})
-      return send(res, { msg: "เพิ่มหลักฐานสำเร็จ"})
+    // validate file ai ย่อให้
+    const rules = {
+      url: () => file_url,
+      image: () => file && file.mimetype.startsWith('image/'),
+      pdf: () => file && file.mimetype === 'application/pdf'
     }
 
-    // url upload
-    if (file_url) {
-        await db('evidence').insert({indic_id,user_id: uid, file_url,description})
-        return send(res, { msg: "เพิ่มหลักฐานสำเร็จ" })
-    }
-    
-    send(res, { msg: "กรุณากรอกหลักฐาน" }, 403)
+    if (!rules[indic.type_file]?.()) return send(res, { msg: "ไฟล์หรือข้อมูลไม่ถูกต้อง" }, 400)
+
+    await db('evidence').insert({
+      indic_id,
+      user_id: uid,
+      description,
+      file_path: file ? file.filename : null,
+      file_url: file_url || null
+    })
+
+    send(res, { msg: "แนบหลักฐานสำเร็จ" })
   } catch (e) {
     err(res, e)
   }
 }
 
-
+// ยกเลิกหลักฐาน
 exports.delEvid = async (req, res) => {
   try {
     const { evid_id } = req.params
 
-    const row = await db('evidence').where({ id: evid_id }).first()
-    if (!row) return send(res, { msg: "ไม่พบหลักฐาน" }, 403)
+    await exist(res, 'evidence', {id: evid_id})
 
     await db('evidence').where({ id: evid_id }).del()
-
     send(res, { msg: "ลบหลักฐานสำเร็จ!" })
   } catch (e) {
     err(res, e)

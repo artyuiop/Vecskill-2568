@@ -17,7 +17,12 @@ export default defineNuxtConfig({
   vite:{
     plugins: [
       tailwindcss()
-    ]
+    ],
+    server: {
+      watch: {  
+        usePolling: true
+      }
+    },
   },
 
   modules: ['@pinia/nuxt']
