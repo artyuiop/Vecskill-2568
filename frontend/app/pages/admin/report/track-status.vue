@@ -9,15 +9,9 @@
     </div>
 
     <UiTable :rows="data_evaluator" :cols="cols_evaluator" v-if="mode === 'evaluator'" :isSearch="false">
-        <template #status="{ row }">
-            <UiBadge :title="row.status" />
-        </template>
     </UiTable>
 
     <UiTable :rows="data_evaluatee" :cols="cols_evaluatee" v-if="mode === 'evaluatee'" :isSearch="false">
-        <template #progress="{ row }">
-            <UiBadge :title="row.status" />
-        </template>
     </UiTable>
 </template>
 
@@ -33,14 +27,14 @@ const mode = ref('evaluator')
 const cols_evaluator = [
     { field: "title", label: "รอบการประเมิน" },
     { field: "fullName", label: "ชื่อกรรมการ" },
-    { field: "progress", label: "ความคืบหน้า" },
+    // { field: "progress", label: "ความคืบหน้า" },
     { field: "status", label: "สถานะ" },
 ];
 
 const cols_evaluatee = [
     { field: "title", label: "รอบการประเมิน" },
     { field: "fullName", label: "ผู้รับการประเมิน" },
-    { field: "progress", label: "ความคืบหน้า" },
+    // { field: "progress", label: "ความคืบหน้า" },
     { field: "status", label: "สถานะรวม" },
 ];
 
@@ -54,12 +48,11 @@ const fetchTrackStatus = async () => {
     for (const ass of assign.value) {
         if (mode.value === 'evaluator') {
             const res = await Fetch(`/api/assessments/track-status/${ass.eval_id}/committee`)
-            console.log(res)
-            const data = res.committee.map(item => ({ ...item, title: ass.title }))
+            const data = res.rows.map(item => ({ ...item, title: ass.title, progress: res.Progress }))
             data_evaluator.value = [...data_evaluator.value, ...data]
         } else if (mode.value === 'evaluatee') {
             const res = await Fetch(`/api/assessments/track-status/${ass.eval_id}/self`)
-            const data = res.self.map(item => ({ ...item, title: ass.title }))
+            const data = res.rows.map(item => ({ ...item, title: ass.title, progress: res.Progress }))
             data_evaluatee.value = [...data_evaluatee.value, ...data]
         }
     }

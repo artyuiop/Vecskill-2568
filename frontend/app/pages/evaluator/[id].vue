@@ -1,13 +1,20 @@
 <script setup>
 const route = useRoute();
 
-// state จากหน้า evaluatorที่ส่งมา
+// state
 const assignId = route.params.id;
 const evaluatee_name = route.query.name;
 const evaluatee_id = route.query.evaluatee_id;
 const title = route.query.title;
-
 const indicator = ref([]);
+const cols_result = [
+  { field: '', label: 'ตัวชี้วัด' },
+  { field: '', label: 'ชื่อผู้รับประเมิน' },
+  { field: '', label: 'น้ำหนักคะแนน' },
+  { field: '', label: 'คะแนนตนเอง' },
+  { field: '', label: 'คะแนนกรรมการ' },
+  { field: '', label: 'คะแนนสุทธิ' },
+]
 
 const fetchIndicatorDetail = async () => {
   const res = await Fetch(`/api/assessments/indicators-detail/${assignId}/${evaluatee_id}`);
@@ -46,6 +53,10 @@ const handleSubmit = async() => {
   }
 }
 
+const fetchResultTable = () => {
+
+}
+
 // ดูหลักฐาน
 const openEvidence = (file_path, file_url) => {
   if (!file_path && !file_url) return
@@ -57,11 +68,6 @@ const openEvidence = (file_path, file_url) => {
   if (file_url) {
     window.location.href = file_url
   }
-}
-
-// ยืนยันการส่งประเมิน
-const confirmSubmit = () => {
-
 }
 
 onMounted(() => {
@@ -86,7 +92,7 @@ definePageMeta({
   <UiHeader :title="title" :description="'ของ ผู้รับประเมิน' + evaluatee_name">
     <UiButton @click="showModal('modal_sign_comment')" title="ให้ความคิดเห็นและลายเซ็น"
       color="btn-secondary btn-soft mr-2" />
-    <UiButton title="ผลลัพธ์การประเมิน" color="btn-secondary btn-soft mr-2" />
+    <UiButton @click="showModal('modal_result')" title="ผลลัพธ์การประเมิน" color="btn-secondary btn-soft mr-2" />
     <UiButton @click="handleSubmit" title="ยืนยันการส่งประเมิน" color="btn-primary mr-2" />
   </UiHeader>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -130,6 +136,7 @@ definePageMeta({
     </UiCard>
   </div>
 
+  <!-- Modal ให้ความคิดเห็นและลายเซ็น -->
   <UiModal modal_id="modal_sign_comment" title="ให้ความคิดเห็นและลายเซ็น">
     <UiInput label="ลงนามลายเซ็น" v-model="formSignComment.sign_file" class="mt-3" />
     <div class="fieldset mt-3">
@@ -140,5 +147,9 @@ definePageMeta({
       <UiButton title="ยกเลิก" color="btn-neutral btn-soft" @click="CloseModal('modal_sign_comment')" />
       <UiButton title="ตกลง" color="btn-primary" @click="submitSignComment" />
     </div>
+  </UiModal>
+
+  <UiModal modal_id="modal_result" title="ผลลัพธ์การประเมิน" size="max-w-4xl">
+    <UiTable :cols="cols_result" :isSearch="false"/>
   </UiModal>
 </template>

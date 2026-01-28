@@ -60,28 +60,19 @@ exports.getIndicatorProgress = async (req, res) => {
 
     const rows = await db("indicators as i")
       .join("assignments as asm", "i.eval_id", "asm.eval_id")
-      .leftJoin("assessments as a", (q) => {
-        q.on("i.id", "=", "a.indic_id")
-          .andOn("a.assign_id", "=", "asm.id")
-          .andOn("a.role", "=", db.raw("?", ["self"]));
-      })
-      .leftJoin("evidence as e", (q) => {
-        q.on("i.id", "=", "e.indic_id").andOn(
-          "e.user_id",
-          "=",
-          "asm.evaluatee_id",
-        );
-      })
+      .leftJoin("assessments as a", (q) =>
+        q
+          .on("i.id", "a.indic_id")
+          .andOn("a.assign_id", "asm.id")
+          .andOn("a.role", db.raw("'self'")),
+      )
+      .leftJoin("evidence as e", (q) =>
+        q.on("i.id", "e.indic_id").andOn("e.user_id", "asm.evaluatee_id"),
+      )
       .leftJoin("levels as l", "l.indic_id", "i.id")
       .where({ "asm.id": assign_id, "asm.evaluatee_id": uid })
       .select(
-        "i.id",
-        "i.name",
-        "i.description",
-        "i.weight",
-        "i.type",
-        "i.allow_evidence",
-        "i.type_file",
+        "i.*",
         "a.score as self_score",
         "a.status",
         "e.file_path",
@@ -95,14 +86,14 @@ exports.getIndicatorProgress = async (req, res) => {
 
     console.log(indicator);
     const done = indicator.filter((i) => i.status === "completed").length;
-    const All = indicator.length;
+    const total = indicator.length;
 
     send(res, {
-      Progress: `${done} / ${All}`,
+      Progress: `${done} / ${total}`,
       status:
         done === 0
           ? "ยังไม่ดำเนินการ"
-          : done < All
+          : done < total
             ? "กำลังดำเนินการ"
             : "เสร็จสิ้น",
       indicators: indicator,
@@ -160,18 +151,26 @@ exports.getComments = async (req, res) => {
 exports.trackStatus = async (req, res) => {
   try {
     const { eval_id, type } = req.params;
-
     const data = {
       self: ["self", "evaluatee_id"],
       committee: ["committee", "evaluator_id"],
     };
-
-    // console.log(data[type]);
-
-    if (!data[type]) return send(res, { msg: "type ไม่ถูกต้อง" }, 400);
     const [role, field] = data[type];
 
-    send(res, { [type]: await trackStatusFuc(eval_id, role, field) });
+    const [rows, totalIndic] = await Promise.all([
+      trackStatusFuc(eval_id, role, field),
+      db("indicators").where({ eval_id }).count("id as count").first(),
+    ]);
+
+    const progress = rows.reduce(
+      (acc, row) => (row.status !== "ยังไม่ดำเนิน" ? acc + 1 : acc),
+      0,
+    );
+
+    send(res, {
+      Progress: `${progress} / ${totalIndic.count}`,
+      rows,
+    });
   } catch (e) {
     err(res, e);
   }
@@ -183,7 +182,7 @@ exports.getEvaluationDetail = async (req, res) => {
     const { assign_id, user_id } = req.params;
     const etid = req.user.id;
 
-    const assign = await exist(res, "assignments", {
+    await exist(res, "assignments", {
       id: assign_id,
       evaluatee_id: user_id,
       evaluator_id: etid,
@@ -225,22 +224,13 @@ exports.submitAssess = async (req, res) => {
     const { assign_id } = req.params;
     const uid = req.user.id;
 
-    const assign = await exist(res, "assignments", {
-      id: assign_id,
-      evaluator_id: uid,
-    });
-
-    // console.log(assign)
-    const [{ total }] = await db("indicators")
-      .where({ eval_id: assign.eval_id })
-      .count("* as total");
-    const [{ done }] = await db("assessments")
-      .where({ assign_id, role: "committee" })
-      .countDistinct("indic_id as done");
-
-    // console.log( total)
-    if (total > done)
-      return send(res, { msg: "กรอกตัวชี้วัดยังไม่ครบ!!" }, 403);
+    const assign = await exist(res, 'assignments', {id: assign_id, evaluator_id: uid})
+      
+    const [{total}] = await db('indicators').where({ eval_id: assign.eval_id }).count('* as total')
+    const [{done}] = await db('assessments').where({assign_id , role: 'committee'}).countDistinct('indic_id as done')
+    
+    console.log( total)
+    if(total > done) return send(res, {msg: "กรอกตัวชี้วัดยังไม่ครบ!!"}, 403)
 
     await db("assessments")
       .where({ assign_id, role: "committee" })
