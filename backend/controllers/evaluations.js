@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const { err, send } = require("../utils/help");
+const { exist } = require("../utils/query");
 
 // เพิ่มรอบการประเมิน
 exports.AddEval = async (req, res) => {
@@ -31,6 +32,7 @@ exports.listEvalID = async (req, res) => {
   try {
     const { id } = req.params;
 
+    await exist(res, 'evaluations', {id})
     const row = await db("evaluations").where({ id }).first();
     send(res, row);
   } catch (e) {
@@ -44,8 +46,7 @@ exports.changeEval = async (req, res) => {
     const { id } = req.params;
     const { title, start_date, end_date } = req.body;
 
-    const evalRow = await db("evaluations").where({ id }).first();
-    if (!evalRow) return send(res, { msg: "ไม่มีรอบการประเมิน" }, 403);
+    await exist(res, 'evaluations', {id})
 
     await db("evaluations")
       .where({ id })
@@ -62,8 +63,7 @@ exports.delEval = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const evalRow = await db("evaluations").where({ id }).first();
-    if (!evalRow) return send(res, { msg: "ไม่มีรอบการประเมิน" }, 403);
+    await exist(res, 'evaluations', {id})
 
     await db("evaluations").where({ id }).del();
     send(res, { msg: "ลบรอบการประเมินสำเร็จ" });

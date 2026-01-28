@@ -1,6 +1,6 @@
 const db = require("../config/db");
 const { send, err } = require("../utils/help");
-const { fn, trackStatusFuc } = require("../utils/query");
+const { fn, trackStatusFuc, mapIndicators, exist } = require("../utils/query");
 
 // กรอกคะแนน & บันทึกคะแนน
 exports.giveScore = async (req, res) => {
@@ -9,18 +9,16 @@ exports.giveScore = async (req, res) => {
     const { indic_id, score, hasIt } = req.body;
     const uid = req.user.id;
 
-    const assign = await db("assignments").where({ id: assign_id }).first();
-    if (!assign) return send(res, { msg: "ไม่พบ assignment" }, 404)
+    const assign = await exist(res,'assignments', {id: assign_id})
+
     // ระบุ role
     let role = null;
     if (assign.evaluatee_id === uid) role = "self";
     else if (assign.evaluator_id === uid) role = "committee";
     else return send(res, { msg: "ไม่มีสิทธิ์ให้คะแนน" }, 403);
 
-    // console.log(role)
-    const ind = await db("indicators")
-      .where({ id: indic_id, eval_id: assign.eval_id })
-      .first();
+    // console.log(assign.evaluatee_id)
+    const ind = await exist(res, 'indicators', {id: indic_id, eval_id: assign.eval_id })
     const assess = await db("assessments")
       .where({ indic_id, assign_id, role })
       .first();
@@ -57,6 +55,7 @@ exports.getIndicatorProgress = async (req, res) => {
     const { assign_id } = req.params;
     const uid = req.user.id;
 
+
     const rows = await db("indicators as i")
       .join("assignments as asm", "i.eval_id", "asm.eval_id")
       .leftJoin("assessments as a", (q) => {
@@ -70,7 +69,7 @@ exports.getIndicatorProgress = async (req, res) => {
           "=",
           "asm.evaluatee_id",
         );
-      })
+      })                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
       .leftJoin("levels as l", "l.indic_id", "i.id")
       .where({ "asm.id": assign_id, "asm.evaluatee_id": uid })
       .select(
@@ -90,31 +89,11 @@ exports.getIndicatorProgress = async (req, res) => {
         "l.description as level_description",
       );
 
-    // Data indicators
-    const data = {};
 
-    rows.forEach((r) => {
-      if (!data[r.id]) {
-        data[r.id] = {
-          ...r,
-          level: [],
-        };
-      }
+    const indicator = mapIndicators(rows);
 
-      // push levels Data
-      if (r.level_id) {
-        data[r.id].level.push({
-          id: r.level_id,
-          level: r.level,
-          descripton: r.level_description,
-        });
-      }
-    });
-        
-    // console.log(map)
-    const indicator = Object.values(rows);
-    // console.log(indicator)
-    const done = indicator.filter((i) => i.status === "เสร็จสิ้น").length;
+    console.log(indicator)
+    const done = indicator.filter((i) => i.status === "completed").length;
     const All = indicator.length;
 
     send(res, {
@@ -142,10 +121,7 @@ exports.SubmitSignatures = async (req, res) => {
     if (![sign_file, comment].every(Boolean))
       return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403);
 
-    const assign = await db("assignments")
-      .where({ id: assign_id, evaluator_id: uid })
-      .first();
-    if (!assign) return send(res, { msg: "ไม่มีสิทลงนาม!" }, 404);
+    await exist(res, 'assignments', { id: assign_id, evaluator_id: uid })
 
     await db("signatures")
       .insert({ assign_id, sign_file, comment })
@@ -163,10 +139,7 @@ exports.getComments = async (req, res) => {
     const { assign_id } = req.params;
     const uid = req.user.id;
 
-    const assign = await db("assignments")
-      .where({ id: assign_id, evaluatee_id: uid })
-      .first();
-    if (!assign) return send(res, { msg: "ไม่มีสิทดูข้อมูล!" }, 403);
+    const assign = await exist(res, 'assignments', { id: assign_id, evaluatee_id: uid })
 
     const row = await db("signatures as si")
       .join("assignments as a", "si.assign_id", "a.id")
@@ -207,10 +180,7 @@ exports.getEvaluationDetail = async (req, res) => {
     const { assign_id, user_id } = req.params;
     const etid = req.user.id
 
-    const assign = await db('assignments').where({id: assign_id, evaluatee_id: user_id, evaluator_id: etid}).first()
-
-    if(!assign) return send(res, { msg: "ไม่มีสิท" }, 403);
-
+    const assign = await exist(res, 'assignments', {id: assign_id, evaluatee_id: user_id, evaluator_id: etid})
     const rows = await db("assignments as a")
       .join('indicators as i', 'i.eval_id', 'a.eval_id')
       .leftJoin('levels as lv', 'lv.indic_id', 'i.id')
@@ -231,27 +201,9 @@ exports.getEvaluationDetail = async (req, res) => {
         'lv.level',
         'lv.description as level_description'
       );
-    const data = {};
 
-    rows.forEach((r) => {
-      if (!data[r.id]) {
-        data[r.id] = {
-          ...r,
-          level: [],
-        };
-      }
 
-      // push levels Data
-      if (r.level_id) {
-        data[r.id].level.push({
-          id: r.level_id,
-          level: r.level,
-          descripton: r.level_description,
-        });
-      }
-    });
-
-    const indicators = Object.values(data)
+    const indicators = mapIndicators(rows);
     res.json({ indicators });
   } catch (e) {
     err(res, e)
@@ -264,10 +216,9 @@ exports.submitAssess = async(req , res) => {
     const { assign_id } = req.params
     const uid = req.user.id
 
-    const [assign] = await db('assignments').where({id: assign_id, evaluator_id: uid})
-
-    if(!assign) return send(res, {msg: "ไม่มีสิทประเมิน!!"}, 403)
-
+    const [assign] = await exist(res, 'assignments', {id: assign_id, evaluator_id: uid})
+      
+    // console.log(assign)
     const [{total}] = await db('indicators').where({ eval_id: assign.eval_id }).count('* as total')
     const [{done}] = await db('assessments').where({assign_id , role: 'committee'}).countDistinct('indic_id as done')
     

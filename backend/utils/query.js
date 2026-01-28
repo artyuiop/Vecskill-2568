@@ -1,4 +1,6 @@
 const db = require("../config/db");
+const { send, err } = require("../utils/help");
+
 
 // Function รวมชื่อ
 const fn = (a = "u", al = "fullName") =>
@@ -20,7 +22,7 @@ const trackStatusFuc = (eval_id, role, userField) => {
       fn('u', 'fullName'),
       db.raw(`
         CASE
-          WHEN SUM(a.status = 'completed') = 0 THEN 'ยังไม่ดำเนิน'
+          WHEN COUNT(a.id) = 0 THEN 'ยังไม่ดำเนิน'
           WHEN SUM(a.status = 'completed') < COUNT(i.id) THEN 'ดำเนินการอยู่'
           ELSE 'เสร็จสิ้น'
         END as status
@@ -28,4 +30,30 @@ const trackStatusFuc = (eval_id, role, userField) => {
     )
 }
 
-module.exports = { fn, trackStatusFuc };
+// Map push Level
+const mapIndicators = (rows) => {
+  const map = {};
+  rows.forEach(r => {
+    map[r.id] ??= { ...r, level: [] };
+    if (r.level_id)
+      map[r.id].level.push({
+        id: r.level_id,
+        level: r.level,
+        description: r.level_description,
+      });
+  });
+  return Object.values(map);
+};  
+
+const exist = async (res ,table, where) => {
+  const record = await db(table).where(where).first()
+  if (!record) {
+    send(res, { msg: 'ไม่พบข้อมูล' }, 404)
+    return null
+  }
+  return record
+}
+
+
+
+module.exports = { fn, trackStatusFuc , mapIndicators, exist};

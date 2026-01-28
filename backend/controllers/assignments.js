@@ -1,6 +1,6 @@
 const db = require("../config/db");
 const { send, err } = require("../utils/help");
-const { fn } = require("../utils/query");
+const { fn, exist } = require("../utils/query");
 
 // มอยหมาย & แก้ไขมอบหมาย
 exports.AddOrUpdateAssign = async (req, res) => {
@@ -47,8 +47,7 @@ exports.delAssign = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const row = await db("assignments").where({ id }).first();
-    if (!row) return send(res, { msg: "ไม่มีการมอบหมาย!!" }, 403);
+    await exist(res,'assignments', {id})
 
     await db("assignments").where({ id }).del();
     send(res, { msg: "ยกเลิกการมอบหมายสำเร้จ!!" });
