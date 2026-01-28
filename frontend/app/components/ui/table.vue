@@ -41,7 +41,10 @@
 const props = defineProps({
     cols: Array,
     rows: Array,
-    isSearch: true
+    isSearch: {
+        type : Boolean,
+        default: true
+    }
 })
 
 const searchQuery = ref('')

@@ -31,15 +31,16 @@ const assign = computed(() => store.assignments)
 const mode = ref('evaluator')
 
 const cols_evaluator = [
-    { field: "title", label: "รอบการประเมิน" }, // เพิ่มคอลัมน์นี้จะได้รู้ว่ามาจากรอบไหน
+    { field: "title", label: "รอบการประเมิน" },
     { field: "fullName", label: "ชื่อกรรมการ" },
-    // { field: "progress", label: "ความคืบหน้า" },
+    { field: "progress", label: "ความคืบหน้า" },
     { field: "status", label: "สถานะ" },
 ];
 
 const cols_evaluatee = [
     { field: "title", label: "รอบการประเมิน" },
     { field: "fullName", label: "ผู้รับการประเมิน" },
+    { field: "progress", label: "ความคืบหน้า" },
     { field: "status", label: "สถานะรวม" },
 ];
 
@@ -53,6 +54,7 @@ const fetchTrackStatus = async () => {
     for (const ass of assign.value) {
         if (mode.value === 'evaluator') {
             const res = await Fetch(`/api/assessments/track-status/${ass.eval_id}/committee`)
+            console.log(res)
             const data = res.committee.map(item => ({ ...item, title: ass.title }))
             data_evaluator.value = [...data_evaluator.value, ...data]
         } else if (mode.value === 'evaluatee') {

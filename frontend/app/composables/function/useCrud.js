@@ -21,9 +21,8 @@ export const Update = async (endpointID, formUpdate) => {
 
 export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
   try {
-    // if (!useValidate(formInsert)) return;
+    if (!useValidate(formInsert)) return;
     const res = await api.post(endpoint, formInsert);
-
     // ถ้าเป็นlogin mode
     if (IsloginRegister === "login") {
       const auth = authStore();
@@ -50,7 +49,7 @@ export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
     }
 
     // default
-    showAlert("ดำเนินการสำเร็จ", "success");
+    showAlert(res.data.msg || res.data.message, "success");
     return res.data;
   } catch (e) {
     console.log(e);
