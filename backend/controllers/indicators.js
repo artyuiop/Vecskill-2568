@@ -1,5 +1,6 @@
 const db = require('../config/db')
 const { send, err } = require('../utils/help')
+const { exist } = require('../utils/query')
 
 
 // เพิ่มตัวชี้วัด && แก้ไข
@@ -33,8 +34,7 @@ exports.AddOrUpdateIndic = async (req, res) => {
 
 
     // evalCheck
-    const Eval = await db('evaluations').where({ id: eval_id }).first()
-    if (!Eval) return send(res, { msg: "ไม่มีรอบการประเมินนี้!!" }, 403)
+    const Eval = await exist(res, 'evaluations', {id: eval_id})
 
 
     const indicId = id
@@ -69,11 +69,10 @@ exports.AddLevels = async (req, res) => {
   try {
     const { indic_id } = req.params
 
-    const indicator = await db('indicators').where({ id: indic_id }).first()
+    const indicator = await exist(res, 'indicators', {id: indic_id})
     const Level = await db('levels').where({ indic_id }).first()
 
     if (Level) return send(res, { msg: "มีตัวชี้วัดอยู่แล้ว!" }, 403)
-    if (!indicator) return send(res, { msg: "ไม่มีตัวชี้วัด" }, 403)
     if (indicator.type !== 'score') return send(res, { msg: "type ไม่ถูกต้อง" }, 403)
 
     // Loop 1-4 Levels
@@ -129,8 +128,7 @@ exports.AddEvidence = async (req, res) => {
     const { file_url, description } = req.body
     const file = req.file
 
-    const indic = await db('indicators').where({ id: indic_id }).first()
-    if (!indic) return send(res, { msg: "ไม่พบตัวชี้วัด" }, 404)
+    const indic = await exist(res, 'indicators', {id: indic_id})
     if (indic.allow_evidence !== 'allow') return send(res, { msg: "ไม่สามารถแนบหลักฐานได้" }, 403)
 
     const dup = await db('evidence').where({ indic_id, user_id: uid }).first()
@@ -164,12 +162,9 @@ exports.delEvid = async (req, res) => {
   try {
     const { evid_id } = req.params
 
-    const row = await db('evidence').where({ id: evid_id }).first()
-    if (!row) return send(res, { msg: "ไม่พบหลักฐาน" }, 403)
+    await exist(res, 'evidence', {id: evid_id})
 
     await db('evidence').where({ id: evid_id }).del()
-
-    
     send(res, { msg: "ลบหลักฐานสำเร็จ!" })
   } catch (e) {
     err(res, e)

@@ -23,7 +23,7 @@ exports.login = async (req, res) => {
   try {
     const { username, password } = req.body
 
-    if (![username, password].every(Boolean)) return send(res, { msg: " " }, 403)
+    if (![username, password].every(Boolean)) return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403)
 
     const user = await db('users').select('id', 'username', 'password', 'role').where({ username }).first()
 
