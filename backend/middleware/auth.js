@@ -24,6 +24,7 @@ exports.AuthCheck  = async(req ,res , next) => {
 
 exports.RoleCheck = (role) => async(req ,res, next) => {
     try {
+        console.log(role)
         const user = await db('users').where({id: req.user.id}).first()
         if(!user || !role.includes(user.role)) return send(res, {msg: "ไม่มีสิทเข้าถึงข้อมูล!"}, 400)
         next()

@@ -179,12 +179,14 @@ exports.getEvaluationDetail = async (req, res) => {
     const rows = await db("assignments as a")
       .join("indicators as i", "i.eval_id", "a.eval_id")
       .leftJoin("levels as lv", "lv.indic_id", "i.id")
+      .leftJoin('assessments as asm', q => {
+        q.on('asm.assign_id', 'a.id')
+          .andOn('asm.indic_id', '=', 'i.id')
+          .andOnVal('asm.role', '=', 'self')
+      })
       .leftJoin("evidence as ed", (q) => {
-        q.on("ed.indic_id", "=", "i.id").andOn(
-          "ed.user_id",
-          "=",
-          db.raw("?", [user_id]),
-        );
+        q.on("ed.indic_id", "=", "i.id")
+          .andOn("ed.user_id", db.raw("?", [user_id]))
       })
       .where({ "a.id": assign_id })
       .select(
@@ -198,6 +200,8 @@ exports.getEvaluationDetail = async (req, res) => {
         "lv.id as level_id",
         "lv.level",
         "lv.description as level_description",
+        "asm.score as self_score",
+        "asm.bool_score as self_bool"
       );
 
     const indicators = mapIndicators(rows);
@@ -218,7 +222,7 @@ exports.submitAssess = async (req, res) => {
     const [{total}] = await db('indicators').where({ eval_id: assign.eval_id }).count('* as total')
     const [{done}] = await db('assessments').where({assign_id , role: 'committee'}).countDistinct('indic_id as done')
     
-    console.log( total)
+    // console.log( total)
     if(total > done) return send(res, {msg: "กรอกตัวชี้วัดยังไม่ครบ!!"}, 403)
 
     await db("assessments")

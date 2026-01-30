@@ -1,5 +1,6 @@
 const { getSummryTableEvaluatee, SummaryEvaluator, getDetailSummaryEvaluator, ExportPDF, reportByuser } = require('../controllers/reports')
-const { AuthCheck } = require('../middleware/auth')
+const { AuthCheck, RoleCheck } = require('../middleware/auth')
+
 
 
 const router = require('express').Router()

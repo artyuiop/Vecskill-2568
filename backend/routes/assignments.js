@@ -1,5 +1,6 @@
 const { AddOrUpdateAssign, delAssign, AssignDetail, ListAssign } = require('../controllers/assignments')
-const { AuthCheck } = require('../middleware/auth')
+const { AuthCheck, RoleCheck } = require('../middleware/auth')
+
 
 const router = require('express').Router()
 
