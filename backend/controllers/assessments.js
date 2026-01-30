@@ -157,20 +157,9 @@ exports.trackStatus = async (req, res) => {
     };
     const [role, field] = data[type];
 
-    const [rows, totalIndic] = await Promise.all([
-      trackStatusFuc(eval_id, role, field),
-      db("indicators").where({ eval_id }).count("id as count").first(),
-    ]);
-
-    const progress = rows.reduce(
-      (acc, row) => (row.status !== "ยังไม่ดำเนิน" ? acc + 1 : acc),
-      0,
-    );
-
+    const rows = await trackStatusFuc(eval_id, role, field)
     send(res, {
-      Progress: `${progress} / ${totalIndic.count}`,
-      rows,
-    });
+rows});
   } catch (e) {
     err(res, e);
   }
