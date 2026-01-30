@@ -23,6 +23,7 @@ const fetchIndicatorDetail = async () => {
   res.indicators.forEach(indic => {
     formScore.value[indic.id] = { score: null, hasIt: null }
   })
+  console.log(indicator.value)
 };
 
 // state ประเมิน
@@ -39,7 +40,6 @@ const submitScore = async (indic_id) => {
     indic_id: indic_id,
     ...formScore.value[indic_id]
   }
-  console.log(scoreData)
   await Insert(`/api/assessments/give-score/${assignId}`, scoreData)
 }
 
@@ -57,21 +57,20 @@ const handleSubmit = async () => {
 const fetchResultTable = async () => {
   const res = await Fetch(`/api/report/result-Table/${assignId}`)
   result_table.value = res
-  console.log(res)
 }
 
-// ดูหลักฐาน
-const openEvidence = (file_path, file_url) => {
-  if (!file_path && !file_url) return
+
+const selectedImageUrl = ref('');
+const openPreview = (file_path, file_url) => {
+  const config = useRuntimeConfig()
 
   if (file_path) {
-
+    selectedImageUrl.value = `${config.public.BASEAPI}/${file_path}`;
+    showModal('modal_preview_image');
+  } else if (file_url) {
+    window.open(file_url.startsWith('http') ? file_url : `https://${file_url}`, '_blank');
   }
-
-  if (file_url) {
-    window.location.href = file_url
-  }
-}
+};
 
 const calculateNetScore = (row) => {
   const weight = row.weight || 1;
@@ -134,7 +133,8 @@ definePageMeta({
             <UiBadge title="ผู้รับประเมินยังไม่แนบหลักฐาน" color="badge-error" />
           </div>
           <div v-else>
-            <UiBadge @click="openEvidence" title="ดูหลักฐาน" class="badge-primary" icon="mdi mdi-file" />
+            <UiBadge @click="openPreview(indic.file_path, indic.file_url)" :title="indic.file_path ? 'ดูหลักฐานไฟล์' : 'ดูหลักฐานลิ้งค์'" class="badge-primary"
+              :icon="indic.file_path ? 'mdi mdi-file' : 'mdi mdi-link'" />
           </div>
         </UiCard>
         <!-- <UiInput v-model="formSignComment[indic.id].sign_file" label="ลงนามลายเซ็น" class="mt-3" /> -->
@@ -186,6 +186,12 @@ definePageMeta({
         </span>
       </template>
     </UiTable>
+  </UiModal>
+
+  <UiModal modal_id="modal_preview_image" title="หลักฐานการประเมิน" size="max-w-2xl">
+    <div class="flex justify-center p-2">
+      <img :src="selectedImageUrl" class="rounded-lg shadow-lg max-w-full h-auto" />
+    </div>
   </UiModal>
 
 </template>
