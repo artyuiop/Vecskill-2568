@@ -48,7 +48,7 @@
 
     <UiModal modal_id="modal_comment" :title="'ดูความคิดเห็นกรรมการ ' + selectAssignName">
         <h1>ความคิดเห็นกรรมการ</h1>
-        <UiBadge color="badge-primary" :title="evaluator_comment?.[0]?.comment" />
+        <UiBadge color="badge-primary mt-1" :title="evaluator_comment?.[0]?.comment || 'ยังไม่มีความคิดเห็น'" />
     </UiModal>
 
     <!-- Modal - ประเมินตนเอง และ แนบหลักฐาน -->
