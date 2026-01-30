@@ -1,4 +1,4 @@
-const { getSummryTableEvaluatee } = require('../controllers/reports')
+const { getSummryTableEvaluatee, SummaryEvaluator, getDetailSummaryEvaluator } = require('../controllers/reports')
 
 
 const router = require('express').Router()
@@ -9,7 +9,8 @@ router.get('/result-Table/:assign_id', getSummryTableEvaluatee)
 // สามารถ Export ออกมาเป็นไฟล์ PDF ได้
 
 // แสดงผลสรุปการประเมินรายกรรมการ (ประเมินผู้รับการประเมินแต่ละคน)
-
+router.get('/summary-assign/:eval_id', SummaryEvaluator)
+router.get('/detail-score/:eval_id/:evaluator_id', getDetailSummaryEvaluator)
 
 // แสดงรายงานผลการประเมินรายบุคคลได้
 
