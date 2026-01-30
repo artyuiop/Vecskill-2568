@@ -6,6 +6,16 @@ const { send, err } = require("../utils/help");
 const fn = (a = "u", al = "fullName") =>
   db.raw(`CONCAT( ${a}.fname,' ', ${a}.lname) as ${al}`);
 
+// Function สถานะ
+const statusCase = (field , sumField , countField) => {
+  return db.raw(`
+    CASE 
+      WHEN COUNT(${field}) = 0 THEN 'ยังไม่ดำเนิน'
+      WHEN SUM(${sumField} = 'completed') < COUNT(${countField}) THEN 'กำลังดำเนินอยู่'
+      ELSE 'เสร็จสิ้น' END as status
+    `)
+}
+
 // Function ติดตามสถานะ
 const trackStatusFuc = (eval_id, role, userField) => {
   return db('assignments as asm')
@@ -20,13 +30,7 @@ const trackStatusFuc = (eval_id, role, userField) => {
     .groupBy('u.id')
     .select(
       fn('u', 'fullName'),
-      db.raw(`
-        CASE
-          WHEN COUNT(a.id) = 0 THEN 'ยังไม่ดำเนิน'
-          WHEN SUM(a.status = 'completed') < COUNT(i.id) THEN 'ดำเนินการอยู่'
-          ELSE 'เสร็จสิ้น'
-        END as status
-      `)
+      statusCase('a.id', 'a.status', 'i.id'),
     )
 }
 
@@ -55,5 +59,4 @@ const exist = async (res ,table, where) => {
 }
 
 
-
-module.exports = { fn, trackStatusFuc , mapIndicators, exist};
+module.exports = { fn, trackStatusFuc , mapIndicators, exist , statusCase};

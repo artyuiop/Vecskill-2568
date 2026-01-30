@@ -12,6 +12,7 @@ const user = require('./routes/users')
 const indicators = require('./routes/indicators')
 const assignments = require('./routes/assignments')
 const assessments = require('./routes/assessments')
+const report = require('./routes/reports')
 
 // middleware
 app.use(express.json())
@@ -26,6 +27,7 @@ app.use('/api/users', user)
 app.use('/api/indicators', indicators)
 app.use('/api/assignments', assignments)
 app.use('/api/assessments', assessments)
+app.use('/api/report/', report)
 
 
 // Page NotFound
@@ -37,6 +39,10 @@ app.use((req ,res) => {
 app.listen(5000, () => console.log('Server Runing! On Port 5000'))
 
 
+
+// เปลี่่ยน mobile Responsive
+// เอา แพ็กเก็จ.json ไปถ้าจะมี framwork , library
+// 
 
 // 5.1 การพัฒนาระบบในส่วนของ งานบุคลากร (14 คะแนน)
 // 5.1.1 เพิ่มหัวข้อการประเมินได้ ✅
@@ -97,7 +103,7 @@ app.listen(5000, () => console.log('Server Runing! On Port 5000'))
 
 // 5.3.5 กรรมการให้ความคิดเห็นสรุปโดยภาพรวมของการประเมิน ✅
 
-// 5.3.6 แสดงผลลัพธ์การประเมิน แต่ละตัวชี้วัด ในรูปแบบของตาราง และสรุปภาพรวมของผู้รับการประเมินรายบุคคล
+// 5.3.6 แสดงผลลัพธ์การประเมิน แต่ละตัวชี้วัด ในรูปแบบของตาราง และสรุปภาพรวมของผู้รับการประเมินรายบุคคล ✅
 
 // 5.3.7 ลงนามการประเมิน โดยแนบลายเซ็น ✅
 
