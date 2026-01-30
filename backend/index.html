@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานผลการประเมินรายบุคคล</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #27ae60;
+            --border-color: #dee2e6;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 20px;
+            color: var(--primary-color);
+        }
+
+        /* Container เอกสาร */
+        .report-paper {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        /* หัวกระดาษ */
+        .header-section {
+            text-align: center;
+            border-bottom: 3px double var(--primary-color);
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+
+        .header-section h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        /* ข้อมูลผู้รับการประเมิน */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-item b {
+            color: var(--secondary-color);
+            display: inline-block;
+            width: 120px;
+        }
+
+        /* ตารางคะแนน */
+        .evaluation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .evaluation-table th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .evaluation-table td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .text-left { text-align: left !important; }
+
+        .score-badge {
+            background: var(--accent-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* ส่วนท้าย: ความเห็นและลายเซ็น */
+        .footer-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .comment-area {
+            width: 55%;
+        }
+
+        .comment-box {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            min-height: 100px;
+            border-radius: 5px;
+            margin-top: 10px;
+            background: #fffdf0;
+        }
+
+        .signature-area {
+            width: 35%;
+            text-align: center;
+        }
+
+        .signature-img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 5px;
+        }
+
+        .sign-line {
+            border-bottom: 1px solid #000;
+            margin: 10px auto;
+            width: 80%;
+        }
+
+        /* ปุ่ม Print */
+        .no-print {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-print {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        @media print {
+            .no-print { display: none; }
+            body { background: white; padding: 0; }
+            .report-paper { box-shadow: none; max-width: 100%; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">ดาวน์โหลดเป็น PDF (Print)</button>
+    </div>
+
+    <div class="report-paper">
+        <div class="header-section">
+            <h1>สรุปผลการประเมินการปฏิบัติงานรายบุคคล</h1>
+            <p>ประจำรอบการประเมินที่ 1 (มกราคม 2026 - มิถุนายน 2026)</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item"><b>ผู้รับการประเมิน:</b> นายทศปกรณ์ คำโบ</div>
+            <div class="info-item"><b>ตำแหน่ง:</b> นักพัฒนาซอฟต์แวร์</div>
+            <div class="info-item"><b>ผู้ประเมิน:</b> นายประธาน กรรมการ</div>
+            <div class="info-item"><b>หน่วยงาน:</b> ฝ่ายเทคโนโลยีสารสนเทศ</div>
+        </div>
+
+        <table class="evaluation-table">
+            <thead>
+                <tr>
+                    <th width="40%">ตัวชี้วัด (Indicators)</th>
+                    <th>น้ำหนัก</th>
+                    <th>คะแนนตนเอง</th>
+                    <th>คะแนนกรรมการ</th>
+                    <th>คะแนนสุทธิ</th>
+                </tr>
+            </thead>
+            <tbody id="tableData">
+                <tr>
+                    <td class="text-left">1. ความถูกต้องของซอฟต์แวร์ที่พัฒนา</td>
+                    <td>1.0</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>4.00</td>
+                </tr>
+                <tr>
+                    <td class="text-left">2. การส่งมอบงานตามระยะเวลาที่กำหนด</td>
+                    <td>1.0</td>
+                    <td>4</td>
+                    <td>4</td>
+                    <td>4.00</td>
+                </tr>
+                <tr>
+                    <td class="text-left">3. การเรียนรู้และพัฒนาทักษะใหม่ๆ</td>
+                    <td>0.5</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>1.50</td>
+                </tr>
+                <tr style="background: #f1f3f5; font-weight: bold;">
+                    <td colspan="4" class="text-right">คะแนนรวมทั้งหมด (เต็ม 10.00)</td>
+                    <td><span class="score-badge">9.50</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer-section">
+            <div class="comment-area">
+                <strong>สรุปความคิดเห็นและข้อเสนอแนะ:</strong>
+                <div class="comment-box">
+                    ผลการดำเนินงานโดดเด่นมาก โดยเฉพาะการจัดการข้อผิดพลาดของระบบ (Bug) ได้อย่างรวดเร็ว ควรส่งเสริมด้านการสื่อสารกับทีมเพิ่มเติมในโปรเจกต์ถัดไป
+                </div>
+            </div>
+            <div class="signature-area">
+                <p>ลงชื่อผู้ประเมิน</p>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/Signature_of_Zuzana_Čaputová.png" class="signature-img" alt="signature">
+                <div class="sign-line"></div>
+                <p>( นายประธาน กรรมการ )</p>
+                <p>ตำแหน่ง ประธานกรรมการประเมิน</p>
+                <p>วันที่ 25 มกราคม 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // คุณสามารถเขียน Logic ตกแต่งเพิ่มเติมตรงนี้ได้ 
+        // เช่นการเปลี่ยนสี Badge ตามช่วงคะแนน
+        const scoreBadge = document.querySelector('.score-badge');
+        const score = parseFloat(scoreBadge.innerText);
+        if(score >= 8) {
+            scoreBadge.style.backgroundColor = '#27ae60';
+        } else if(score >= 5) {
+            scoreBadge.style.backgroundColor = '#f1c40f';
+        } else {
+            scoreBadge.style.backgroundColor = '#e74c3c';
+        }
+    </script>
+</body>
+</html>

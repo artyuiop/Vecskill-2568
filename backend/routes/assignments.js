@@ -4,16 +4,16 @@ const { AuthCheck } = require('../middleware/auth')
 const router = require('express').Router()
 
 // มอบหมาย
-router.post('/', AddOrUpdateAssign)
+router.post('/', AuthCheck,RoleCheck(['admin']),AddOrUpdateAssign)
 
 // แก้ไขมอบหมาย
-router.put('/:id', AddOrUpdateAssign)
+router.put('/:id',AuthCheck,RoleCheck(['admin']), AddOrUpdateAssign)
 
 // ยกเลิกมอบหมาย
-router.delete('/:id', delAssign)
+router.delete('/:id',AuthCheck,RoleCheck(['admin']), delAssign)
 
 // แสดงข้อมูลที่ต้องประเมิน
-router.get('/',AuthCheck, ListAssign)
+router.get('/',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), ListAssign)
 
 
 

@@ -100,6 +100,7 @@ exports.getDetailSummaryEvaluator = async(req, res) => {
         .join('indicators as i', 'i.eval_id', 'asm.eval_id')
         .leftJoin('assessments as a', q => {
             q.on('a.assign_id', '=', 'asm.id')
+            .andOn('a.indic_id', '=', 'i.id')
             .andOnVal('a.role', '=', 'committee')
         })
         .leftJoin('levels as lv', 'lv.id', 'a.score')
@@ -118,7 +119,7 @@ exports.getDetailSummaryEvaluator = async(req, res) => {
             db.raw(`
               SUM(
                 CASE
-                  WHEN i.type = 'score' THEN COALESCE(lv.level, 0) * i.weight
+                  WHEN i.type = 'score' THEN lv.level * i.weight
                   WHEN i.type = 'boolean' AND a.bool_score = 'have' THEN i.weight
                   ELSE 0 END
               ) AS total_score
@@ -209,7 +210,34 @@ exports.ExportPDF = async (req, res) => {
 // แสดงรายงานผลการประเมินรายบุคคลได้
 exports.reportByuser = async (req, res) => {
   try {
+    const { eval_id, user_id } = req.params;
 
+    const info = await db("assignments as a")
+      .join("users as u", "a.evaluatee_id", "u.id")
+      .join("users as ut", "a.evaluator_id", "ut.id")
+      .join("evaluations as e", "a.eval_id", "e.id")
+      .leftJoin("signatures as s", "a.id", "s.assign_id")
+      .select("a.id as assign_id", fn('u', 'evaluatee_name'),fn('ut', 'evaluator_name'), "e.title", "s.comment", "s.sign_file")
+      .where({ "a.eval_id": eval_id, "a.evaluatee_id": user_id })
+      .first();
+
+    if (!info) return res.status(404).send("ไม่พบข้อมูล");
+
+    const details = await db("indicators as i")
+      .leftJoin("assessments as s", q => 
+        q.on("s.indic_id", "i.id")
+        .andOnVal("s.assign_id", info.assign_id)
+        .andOnVal("s.role", "s"))
+
+      .leftJoin("assessments as c", q => 
+        q.on("c.indic_id", "i.id")
+        .andOnVal("c.assign_id", info.assign_id)
+        .andOnVal("c.role", "cmittee"))
+      .leftJoin("levels as l", "c.score", "l.id")
+      .where("i.eval_id", eval_id)
+      .select("i.name", "i.weight", "s.score as self_score", "l.level as committee_score")
+
+    res.json({ info, details });
   } catch (e) {
     err(res, e);
   }
