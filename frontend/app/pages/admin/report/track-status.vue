@@ -45,6 +45,7 @@ const fetchTrackStatus = async () => {
     data_evaluator.value = []
     data_evaluatee.value = []
 
+
     for (const ass of assign.value) {
         if (mode.value === 'evaluator') {
             const res = await Fetch(`/api/assessments/track-status/${ass.eval_id}/committee`)
