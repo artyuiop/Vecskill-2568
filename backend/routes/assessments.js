@@ -4,24 +4,24 @@ const { AuthCheck } = require('../middleware/auth')
 const router = require('express').Router()
 
 // กรอกคะแนน
-router.post('/give-score/:assign_id',AuthCheck, giveScore)
+router.post('/give-score/:assign_id',AuthCheck,RoleCheck(['evaluatee', 'evaluator']),AuthCheck, giveScore)
 
 // ดูความคืบหน้าแต่ละตัวชี้วัด & ดูภาพรวมตัวชี้วัด
-router.get('/getIndicatorProgress/:assign_id',AuthCheck, getIndicatorProgress)
+router.get('/getIndicatorProgress/:assign_id',AuthCheck,RoleCheck(['evaluatee']),AuthCheck, getIndicatorProgress)
 
 // ลงนาม & คอมเม้น
-router.post('/sign-commnents/:assign_id', AuthCheck, SubmitSignatures)
+router.post('/sign-commnents/:assign_id', AuthCheck,RoleCheck(['evaluator']), SubmitSignatures)
 
 // ดูความเห็นกรรมการ
-router.get('/get-comment/:assign_id', AuthCheck, getComments)
+router.get('/get-comment/:assign_id', AuthCheck,RoleCheck(['evaluatee']), getComments)
 
 // ติดตามสถานะของ ผู้รับประเมิน
-router.get('/track-status/:eval_id/:type', AuthCheck , trackStatus)
+router.get('/track-status/:eval_id/:type', AuthCheck,RoleCheck(['admin']), trackStatus)
 
 // แสดงคะแนนที่ผู้รับการประเมิน ประเมินตนเอง & หัวข้อ ตัวชี้วัด รายละเอียดข้อมูล และหลักฐาน
-router.get('/indicators-detail/:assign_id/:user_id', AuthCheck, getEvaluationDetail)
+router.get('/indicators-detail/:assign_id/:user_id',AuthCheck,RoleCheck(['evaluator']), getEvaluationDetail)
 
 // ยืนยันและส่งผลการประเมิน
-router.post('/submitAssess/:assign_id', AuthCheck, submitAssess)
+router.post('/submitAssess/:assign_id', AuthCheck,RoleCheck(['evaluator']), submitAssess)
 
 module.exports = router

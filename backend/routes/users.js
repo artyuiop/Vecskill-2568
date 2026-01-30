@@ -19,6 +19,6 @@ router.get('/detail',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), g
 router.put('/:id',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), changeUser)
 
 // ลบผู้ใมช้งาน
-router.delete('/:id', deluser)
+router.delete('/:id',AuthCheck,RoleCheck(['admin']), deluser)
 
 module.exports = router
