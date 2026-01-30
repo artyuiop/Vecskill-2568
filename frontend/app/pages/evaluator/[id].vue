@@ -20,7 +20,7 @@ const fetchIndicatorDetail = async () => {
   const res = await Fetch(`/api/assessments/indicators-detail/${assignId}/${evaluatee_id}`);
   indicator.value = res.indicators;
   res.indicators.forEach(indic => {
-    formScore.value[indic.id] = { score: '', hasIt: '' }
+    formScore.value[indic.id] = { score: null, hasIt: null }
   })
 };
 
@@ -38,6 +38,7 @@ const submitScore = async (indic_id) => {
     indic_id: indic_id,
     ...formScore.value[indic_id]
   }
+  console.log(scoreData)
   await Insert(`/api/assessments/give-score/${assignId}`, scoreData)
 }
 
@@ -46,10 +47,9 @@ const submitSignComment = async () => {
   CloseModal('modal_sign_comment')
 }
 
-const handleSubmit = async() => {
-  if(confirm('คุณต้องการส่งประเมินหรือไม่')){
+const handleSubmit = async () => {
+  if (confirm('คุณต้องการส่งประเมินหรือไม่')) {
     const res = await Insert(`/api/assessments/submitAssess/${assignId}`, {})
-    console.log(res)
   }
 }
 
@@ -150,6 +150,6 @@ definePageMeta({
   </UiModal>
 
   <UiModal modal_id="modal_result" title="ผลลัพธ์การประเมิน" size="max-w-4xl">
-    <UiTable :cols="cols_result" :isSearch="false"/>
+    <UiTable :cols="cols_result" :isSearch="false" />
   </UiModal>
 </template>
