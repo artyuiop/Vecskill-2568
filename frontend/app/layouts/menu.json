@@ -5,7 +5,7 @@
       "icon": "mdi mdi-view-dashboard-outline",
       "children": [
         { "name": "หน้าหลัก", "path": "/admin" },
-        { "name": "สรุปผลการประเมินรายกรรมการ", "path": "" },
+        { "name": "สรุปผลการประเมินรายกรรมการ", "path": "/admin/report/result-comittee" },
         { "name": "ติดตามสถานะการประเมิน", "path": "/admin/report/track-status" },
         { "name": "รายงานผลการประเมินรายบุคคล", "path": "" }
       ]
