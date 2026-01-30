@@ -1,7 +1,9 @@
 <template>
   <button class="badge badge-soft hover:-translate-y-1 hover:cursor-pointer duration-200" :class="color">
     <i v-if="icon" :class="icon"></i>
-    {{ title }}
+    <span class="truncate">
+      {{ title }}
+    </span>
   </button>
 </template>
 

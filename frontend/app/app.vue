@@ -6,7 +6,9 @@
 </template>
 
 <script setup>
-import { dataStore } from '#imports';
+useHead({
+  title: "ระบบประเมินบุคลากร"
+})
 const store = dataStore();
 const auth = authStore();
 onMounted(() => {

@@ -1,21 +1,25 @@
 <template>
     <!-- Header & เลือกรอบประเมิน & Export Pdf -->
     <UiHeader title="ประเมินตนเอง" :description="'รอบการประเมิน ' + selectAssignName">
-        <div class="flex items-center gap-3">
-            <div class="fieldset w-40">
+        <div class="flex flex-col md:flex-row md:items-end gap-3 w-full md:w-auto">
+            <div class="fieldset w-full md:w-47">
                 <legend>เลือกรอบการประเมิน</legend>
-                <select class="select" v-model="selectAssignId">
+                <select class="select -mb-1" v-model="selectAssignId">
                     <option :value="ass.assign_id" v-for="ass in assignments">
                         {{ ass.title }}
                     </option>
                 </select>
             </div>
-            <button class="btn btn-secondary btn-outline mt-6 shadow-sm" @click="openModalComment">
-                <i class="mdi mdi-comment text-lg"></i> ดูความคิดเห็นกรรมการ
-            </button>
-            <button class="btn btn-primary btn-outline mt-6 shadow-sm" @click="handleExportPdf">
-                <i class="mdi mdi-printer text-lg"></i> Export PDF
-            </button>
+            <div class="flex w-full md:w-auto gap-3">
+                <button class="btn btn-secondary btn-outline flex-1 shadow-sm" @click="openModalComment">
+                    <i class="mdi mdi-comment text-lg"></i>
+                    <span class="hidden md:block truncate">ดูความคิดเห็นกรรมการ</span>
+                </button>
+                <button class="btn btn-primary btn-outline flex-1 shadow-sm" @click="handleExportPdf">
+                    <i class="mdi mdi-printer text-lg"></i>
+                    <span class="hidden md:block">Export PDF</span>
+                </button>
+            </div>
         </div>
     </UiHeader>
 
@@ -44,7 +48,7 @@
 
     <UiModal modal_id="modal_comment" :title="'ดูความคิดเห็นกรรมการ ' + selectAssignName">
         <h1>ความคิดเห็นกรรมการ</h1>
-        <UiBadge color="badge-primary" :title="evaluator_comment?.[0]?.comment"/>
+        <UiBadge color="badge-primary" :title="evaluator_comment?.[0]?.comment" />
     </UiModal>
 
     <!-- Modal - ประเมินตนเอง และ แนบหลักฐาน -->
@@ -59,7 +63,8 @@
                             {{ level.level }} {{ level.description || level.descripton }}
                         </option>
                     </select>
-                    <select v-model="form_score.hasIt" class="select w-full" v-if="selectModalIndic?.type === 'boolean'">
+                    <select v-model="form_score.hasIt" class="select w-full"
+                        v-if="selectModalIndic?.type === 'boolean'">
                         <option value="have">มี</option>
                         <option value="not_have">ไม่มี</option>
                     </select>
@@ -79,7 +84,8 @@
                 <!-- คำอธิบายหลักฐาน -->
                 <div class="fieldset">
                     <legend>คำอธิบายเพิ่มเติม/หมายเหตุ</legend>
-                    <textarea v-model="form_upload.description" class="textarea textarea-bordered w-full h-24" placeholder="ระบุรายละเอียด..."></textarea>
+                    <textarea v-model="form_upload.description" class="textarea textarea-bordered w-full h-24"
+                        placeholder="ระบุรายละเอียด..."></textarea>
                 </div>
             </div>
         </div>
@@ -182,15 +188,15 @@ const handleSubmit = async () => {
     form_score.value.indic_id = indicId;
     formdata.append("description", form_upload.value.description);
 
-    if(!form_score.value.score && !form_score.value.hasIt){
+    if (!form_score.value.score && !form_score.value.hasIt) {
         return showAlert('กรุณาระบุคะแนน', "error")
     }
-    
-    if(type_file === "url" && !form_upload.value.file_url){
+
+    if (type_file === "url" && !form_upload.value.file_url) {
         return showAlert('กรุณากรอกลิ้งค์ URL หลักฐาน', "error")
     }
-    
-    if((type_file === "image" || type_file === "pdf") && !form_upload.value.file){
+
+    if ((type_file === "image" || type_file === "pdf") && !form_upload.value.file) {
         return showAlert('กรุณาแนบไฟล์หลักฐาน', "error")
     }
 
@@ -201,12 +207,12 @@ const handleSubmit = async () => {
     // console.log(resGive.data)
     if (type_file === "url") {
         formdata.append("file_url", form_upload.value.file_url);
-    }else {
+    } else {
         if (form_upload.value.file) {
             formdata.append("file", form_upload.value.file);
         }
     }
-    
+
     const res = await Insert(`/api/indicators/evidence/${indicId}`, formdata);
     fetchIndic(assignId)
     CloseModal('modal_self')
@@ -216,7 +222,7 @@ const handleFileChange = async (e) => {
     form_upload.value.file = e.target.files[0];
 };
 
-const handleExportPdf = async() => {
+const handleExportPdf = async () => {
 
 }
 
