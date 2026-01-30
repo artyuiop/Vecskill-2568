@@ -7,39 +7,19 @@ const { exist } = require('../utils/query')
 exports.AddOrUpdateIndic = async (req, res) => {
   try {
     const { id } = req.params
-    const { eval_id, name, description, weight, type, allow_evidence, type_file } = req.body
+    const { eval_id, name, description, weight, type, type_file } = req.body
 
-    if (![name, eval_id, description, weight, type, allow_evidence].every(Boolean)) return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403)
+    if (![name, eval_id, description, weight, type].every(Boolean)) return send(res, { msg: "กรุณากรอกข้อมูลให้ครบ" }, 403)
 
     if (!['score', 'boolean'].includes(type)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
-    if (!['allow', 'not_allow'].includes(allow_evidence)) return send(res, { msg: "type ไม่ถูกต้อง!" }, 403)
-
-
-    // type check
-    if (allow_evidence === 'allow') {
-      if (!type_file) {
-        return send(res, { msg: "กรุณาระบุชนิดไฟล์หลักฐาน" }, 403)
-      }
-
       // เช็คว่าตรงไหม
       if (!['png', 'image', 'url'].includes(type_file)) {
         return send(res, { msg: "type_file ไม่ถูกต้อง!" }, 403)
       }
-    }
-
-    // ถ้าไม่อนุญาติ
-    if (allow_evidence === 'not_allow' && type_file) {
-      return send(res, { msg: "ตัวชี้วัดนี้ไม่อนุญาตให้แนบหลักฐาน" }, 403)
-    }
-
-
-    // evalCheck
-    const Eval = await exist(res, 'evaluations', {id: eval_id})
-
-
+  
     const indicId = id
-      ? (await db('indicators').where({ id }).update({ eval_id, name, description, weight, type, allow_evidence, type_file }), +id)
-      : (await db('indicators').insert({ eval_id, name, description, weight, type, allow_evidence, type_file }))[0]
+      ? (await db('indicators').where({ id }).update({ eval_id, name, description, weight, type, type_file }), +id)
+      : (await db('indicators').insert({ eval_id, name, description, weight, type, type_file }))[0]
 
 
     send(res, { msg: id ? "แก้ไขตัวชี้วัดสำเร็จ!" : "เพิ่มตัวชี้วัดสำเร็จ!", indicId })
@@ -129,7 +109,6 @@ exports.AddEvidence = async (req, res) => {
     const file = req.file
 
     const indic = await exist(res, 'indicators', {id: indic_id})
-    if (indic.allow_evidence !== 'allow') return send(res, { msg: "ไม่สามารถแนบหลักฐานได้" }, 403)
 
     const dup = await db('evidence').where({ indic_id, user_id: uid }).first()
     if (dup) return send(res, { msg: "มีหลักฐานแล้ว กรุณาลบก่อน" }, 403)

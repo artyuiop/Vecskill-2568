@@ -2,6 +2,7 @@ const db = require("../config/db");
 const { send, err } = require("../utils/help");
 const { exist } = require("../utils/query");
 const { fn, statusCase} = require("../utils/query");
+const PDFDocument = require("pdfkit");
 
 // แสดงผลลัพธ์การประเมิน แต่ละตัวชี้วัด ในรูปแบบของตาราง และสรุปภาพรวมของผู้รับการประเมินรายบุคคล
 exports.getSummryTableEvaluatee = async (req, res) => {
@@ -127,7 +128,74 @@ exports.getDetailSummaryEvaluator = async(req, res) => {
 // สามารถ Export ออกมาเป็นไฟล์ PDF ได้
 exports.ExportPDF = async (req, res) => {
   try {
-    
+    const { eval_id } = req.params;
+    const user_id = req.user.id
+
+    const ev = await exist(res, 'evaluations', {id: eval_id})
+    const ee = await db("users").where({ id: user_id }).first();
+    const assign = await exist(res, 'assignments', {eval_id, evaluatee_id: user_id})
+
+    const fmt = await db("indicators as i")
+      .leftJoin("assessments as s", q => {
+        q.on("s.indic_id", "i.id")
+          .andOn("s.assign_id", "=", assign.id)
+          .andOnVal("s.role", "=", "self");
+      })
+      .leftJoin("assessments as c", q => {
+        q.on("c.indic_id", "i.id")
+          .andOn("c.assign_id", "=", assign.id)
+          .andOnVal("c.role", "=", "committee");
+      })
+      .where("i.eval_id", eval_id)
+      .select("i.name as title", "i.weight","s.score as self_score","c.score as committee_score");
+
+    const cr = await db("signatures").where({ assign_id: assign.id }).first();
+    const cm = await db("users").where({ id: assign.evaluator_id }).first();
+
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition","attachment; filename=evaluation-report.pdf");
+
+    doc.font('font/Kanit-Bold.ttf')
+    doc.pipe(res);
+    doc
+      .fontSize(16)
+      .text("รายงานสรุปผลการประเมิน", { align: "center" })
+      .moveDown(2);
+
+    doc
+      .fontSize(12)
+      .text(`ชื่อผู้รับการประเมิน : ${ee.fname} ${ee.lname}`)
+      .text(`รอบการประเมิน : ${ev.title}`)
+      .text(`ช่วงเวลา : ${ev.start_date} ถึง ${ev.end_date}`)
+      .moveDown();
+
+    const startY = doc.y + 10;
+    const cols = [50, 260, 360, 460];
+    const rowH = 25;
+
+    ["ตัวชี้วัด", "น้ำหนัก", "คะแนนตนเอง", "คะแนนกรรมการ"].forEach((h, i) => doc.text(h, cols[i], startY));
+
+    doc.moveTo(50, startY + 20).lineTo(550, startY + 20).stroke();
+
+    let y = startY + 25;
+    fmt.forEach(r => {
+      doc
+        .text(r.title, cols[0], y)
+        .text(r.weight.toString(), cols[1], y)
+        .text(r.self_score ?? "-", cols[2], y)
+        .text(r.committee_score ?? "-", cols[3], y);
+      y += rowH;
+    });
+
+    doc.moveDown(3).text("ความคิดเห็นของกรรมการผู้ประเมิน :", 50).moveDown(0.5).text(cr?.comment || "-", 50).moveDown(3)
+      .text(`(ลงชื่อ) ${cm?.fname || "-"} ${cm?.lname || "-"}`, {
+        align: "center",
+      })
+      .text(`ตำแหน่ง : ${assign.position || "-"}`, {
+        align: "center",
+      });
+    doc.end();
   } catch (e) {
     err(res, e);
   }
