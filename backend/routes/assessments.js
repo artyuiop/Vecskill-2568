@@ -1,5 +1,6 @@
 const { giveScore, getIndicatorProgress, SubmitSignatures, getComments, submitAssess, trackStatus,getEvaluationDetail } = require('../controllers/assessments')
-const { AuthCheck } = require('../middleware/auth')
+const { AuthCheck, RoleCheck } = require('../middleware/auth')
+
 
 const router = require('express').Router()
 

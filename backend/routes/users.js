@@ -9,11 +9,11 @@ router.post('/',AuthCheck,RoleCheck(['admin']), createUser)
 // ดูผู้ใช้ตาม Role
 router.get('/getUserRole',AuthCheck,RoleCheck(['admin']), listUserRole)
 
-// ดูผู้ใช้ทีละคน
-router.get('/:id',AuthCheck,RoleCheck(['admin']), listUserID)
-
 // ดูโปรไฟล์ตัวเอง
 router.get('/detail',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), getDetailMe)
+
+// ดูผู้ใช้ทีละคน
+router.get('/:id',AuthCheck,RoleCheck(['admin']), listUserID)
 
 // แก้ไขโปรไฟล์์หรือผู้ใช่งาน
 router.put('/:id',AuthCheck,RoleCheck(['admin', 'evaluatee', 'evaluator']), changeUser)
