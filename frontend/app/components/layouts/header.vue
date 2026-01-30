@@ -35,7 +35,7 @@
     </div>
     <div class="flex justify-end mt-2 space-x-2">
       <UiButton title="ยกเลิก" color="btn-neutral btn-soft" @click="CloseModal('update_profile')" />
-      <UiButton title="ตกลง" color="btn-primary" @click="" />
+      <UiButton title="ตกลง" color="btn-primary" @click="updateProfile" />
     </div>
   </UiModal>
 
@@ -45,12 +45,13 @@
 const formUpdateProfile = ref({})
 const auth = authStore()
 
+const updateProfile = async() => {
+  await Update(`/api/users/${formUpdateProfile.value.id}`, formUpdateProfile.value)
+  CloseModal('update_profile')
+}
+
 onMounted(async () => {
-  // const res = await Fetch('/api/users/detail')
-  // console.log(res)
-  // formUpdateProfile.value = res
-  // auth.getProfile()
-  // formUpdateProfile.value = auth.profile
-  // console.log(auth.profile)
+  const res = await Fetch('/api/users/detail')
+  formUpdateProfile.value = res
 })
 </script>

@@ -125,7 +125,7 @@ definePageMeta({
       <div class="grid grid-cols-2 gap-3">
         <UiCard>
           <h1>คะแนนประเมินตนเอง</h1>
-          <p></p>
+          <p>{{ Number(indic.self_score).toFixed(2) || indic.self_bool }}</p>
         </UiCard>
         <UiCard>
           <h1>หลักฐานที่ผู้รับประเมินที่แนบ</h1>
