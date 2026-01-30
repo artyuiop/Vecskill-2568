@@ -99,9 +99,10 @@ exports.getDetailSummaryEvaluator = async(req, res) => {
         .join('users as u', 'asm.evaluatee_id', 'u.id')
         .join('indicators as i', 'i.eval_id', 'asm.eval_id')
         .leftJoin('assessments as a', q => {
-            q.on('a.assign_id', '=', 'asm.id')
+            q.on('a.assign_id', '=', 'a.id')
             .andOnVal('a.role', '=', 'committee')
         })
+        .leftJoin('levels as lv', 'lv.id', 'lv.id')
         .where({
             'asm.eval_id': eval_id,
             'asm.evaluator_id': evaluator_id
@@ -113,10 +114,12 @@ exports.getDetailSummaryEvaluator = async(req, res) => {
             statusCase('a.id', 'a.status', 'i.id'),
             // คะแนนรวม
             db.raw(`
-            CASE
-                WHEN COUNT(a.id) = 0 THEN NULL
-                ELSE SUM(a.score)
-            END as total_score
+              SUM(
+                CASE
+                  WHEN i.type = 'score' THEN COALESCE(lv.level, 0) * i.weight
+                  WHEN i.type = 'boolean' AND a.bool_score = 'have' THEN i.weight
+                  ELSE 0 END
+              ) AS total_score
             `)
         )
         send(res, rows)
