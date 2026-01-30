@@ -208,10 +208,10 @@ exports.getEvaluationDetail = async (req, res) => {
 };
 
 // ยืนยันและส่งผลการประเมิน
-exports.submitAssess = async(req , res) => { 
+exports.submitAssess = async (req, res) => {
   try {
-    const { assign_id } = req.params
-    const uid = req.user.id
+    const { assign_id } = req.params;
+    const uid = req.user.id;
 
     const assign = await exist(res, 'assignments', {id: assign_id, evaluator_id: uid})
       
@@ -221,9 +221,11 @@ exports.submitAssess = async(req , res) => {
     console.log( total)
     if(total > done) return send(res, {msg: "กรอกตัวชี้วัดยังไม่ครบ!!"}, 403)
 
-    await db('assessments').where({assign_id , role: 'committee'}).update({'status': 'completed'})
-    send(res, 'ok')
-    } catch(e) {
-    err(res, e) 
+    await db("assessments")
+      .where({ assign_id, role: "committee" })
+      .update({ status: "completed" });
+    send(res, "ok");
+  } catch (e) {
+    err(res, e);
   }
-}
+};

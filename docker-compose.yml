@@ -2,10 +2,11 @@ services:
   db:
     image: mariadb:latest
     environment:
-      MYSQL_DATABASE: MUK
+      MYSQL_DATABASE: estimate01
       MYSQL_ROOT_PASSWORD: 1234
     volumes:
-      - mysql:/var/lib/mysql
+      # - mysql:/var/lib/mysql
+      - ./backend/sql:/docker-entrypoint-initdb.d
     ports:
       - 3307:3306
   phpmyadmin:
