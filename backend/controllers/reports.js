@@ -227,15 +227,15 @@ exports.reportByuser = async (req, res) => {
       .leftJoin("assessments as s", q => 
         q.on("s.indic_id", "i.id")
         .andOnVal("s.assign_id", info.assign_id)
-        .andOnVal("s.role", "s"))
+        .andOnVal("s.role", "self"))
 
       .leftJoin("assessments as c", q => 
         q.on("c.indic_id", "i.id")
         .andOnVal("c.assign_id", info.assign_id)
-        .andOnVal("c.role", "cmittee"))
+        .andOnVal("c.role", "committee"))
       .leftJoin("levels as l", "c.score", "l.id")
       .where("i.eval_id", eval_id)
-      .select("i.name", "i.weight", "s.score as self_score", "l.level as committee_score")
+      .select("i.name", "i.weight", "s.score as self_score" ,"s.bool_score as self_bool", "c.score as com_score" ,"c.bool_score as com_bool")
 
     res.json({ info, details });
   } catch (e) {
