@@ -36,7 +36,7 @@
     <UiTable class="mt-4" :cols="cols" :rows="indic">
         <template #action="{ row }">
             <div class="space-x-2">
-                <UiBadge icon="mdi mdi-delete" color="badge-error" @click="Delete('/api/indicators/')" />
+                <UiBadge icon="mdi mdi-delete" color="badge-error" @click="Delete(`/api/indicators/evidence/${row.id}`)" />
                 <UiBadge icon="mdi mdi-pencil" color="badge-primary" @click="openModal(row)" />
             </div>
         </template>
@@ -128,7 +128,7 @@ const fetchIndic = async (assignId) => {
         const res = await Fetch(
             `/api/assessments/getIndicatorProgress/${job.assign_id}`,
         );
-        console.log(res)
+        // console.log(res)
         progress.value = {
             progress: res.Progress,
             status: res.status,
@@ -200,7 +200,8 @@ const handleSubmit = async () => {
         return showAlert('กรุณาแนบไฟล์หลักฐาน', "error")
     }
 
-    await api.post(`/api/assessments/give-score/${assignId}`, form_score.value)
+    await Insert(`/api/assessments/give-score/${assignId}`, form_score.value)
+    // console.log(resGive)
     if (type_file === "url") {
         formdata.append("file_url", form_upload.value.file_url);
     } else {
@@ -222,12 +223,12 @@ const handleFileChange = async (e) => {
 const handleExportPdf = async () => {
     const currentAssign = assignments.value.find(a => a.assign_id === selectAssignId.value)
     const eval_id = currentAssign.eval_id
-    console.log(eval_id)
+    // console.log(eval_id)
 
     const res = await api.get(`/api/report/export-pdf/${eval_id}`, {
         responseType: 'blob'
     })
-    console.log(res)
+    // console.log(res)
     const blob = new Blob([res.data], { type: 'application/pdf' })
     const url = window.URL.createObjectURL(blob)
     window.open(url, '_blank')

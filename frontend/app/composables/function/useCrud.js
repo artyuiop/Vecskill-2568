@@ -59,10 +59,10 @@ export const Insert = async (endpoint, formInsert, IsloginRegister = "") => {
   }
 };
 
-export const Delete = async (endpoint, id) => {
+export const Delete = async (endpoint) => {
   try {
     if (confirm("คุณต้องการลบหรือไม่?")) {
-      const res = await api.delete(`${endpoint}/${id}`);
+      const res = await api.delete(`${endpoint}`);
       showAlert("ดำเนินการลบข้อมูลสำเร็จ", "success");
 
       const store = dataStore();

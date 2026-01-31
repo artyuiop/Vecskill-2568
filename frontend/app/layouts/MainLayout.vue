@@ -8,7 +8,10 @@
 
         <!-- Main Content -->
         <div class=" p-5 shadow-sm mx-6 mt-6 mb-2 rounded-[10px] bg-white">
-          <slot></slot>
+          <transition
+          >
+            <slot></slot>
+          </transition>
         </div>
       </div>
 
