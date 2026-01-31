@@ -49,6 +49,7 @@ const mapIndicators = (rows) => {
   return Object.values(map);
 };  
 
+// CheckNotExist
 const exist = async (res ,table, where) => {
   const record = await db(table).where(where).first()
   if (!record) {

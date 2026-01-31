@@ -12,7 +12,7 @@ router.post('/give-score/:assign_id',AuthCheck,RoleCheck(['evaluatee', 'evaluato
 router.get('/getIndicatorProgress/:assign_id',AuthCheck,RoleCheck(['evaluatee']), getIndicatorProgress)
 
 // ลงนาม & คอมเม้น -
-router.post('/sign-commnents/:assign_id', AuthCheck,RoleCheck(['evaluator']), SubmitSignatures)
+router.post('/sign-commnents/:assign_id', AuthCheck,RoleCheck(['evaluator']),EvaluationCheck, SubmitSignatures)
 
 // ดูความเห็นกรรมการ
 router.get('/get-comment/:assign_id', AuthCheck,RoleCheck(['evaluatee']), getComments)
@@ -24,6 +24,6 @@ router.get('/track-status/:eval_id/:type', AuthCheck,RoleCheck(['admin']), track
 router.get('/indicators-detail/:assign_id/:user_id',AuthCheck,RoleCheck(['evaluator']), getEvaluationDetail)
 
 // ยืนยันและส่งผลการประเมิน -
-router.post('/submitAssess/:assign_id', AuthCheck,RoleCheck(['evaluator']), submitAssess)
+router.post('/submitAssess/:assign_id', AuthCheck,RoleCheck(['evaluator']), EvaluationCheck, submitAssess)
 
 module.exports = router

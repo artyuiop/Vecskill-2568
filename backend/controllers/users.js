@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const { send, err } = require("../utils/help");
+const { exist } = require("../utils/query");
 
 //  เพิ่่มผู้ใช้งาน
 exports.createUser = async (req, res) => {
@@ -62,22 +63,21 @@ exports.getDetailMe = async (req, res) => {
 // แก้ไขโปรไฟล์
 exports.changeUser = async (req, res) => {
   try {
-    const { id } = req.params;
+    const user_id = req.user.id
+    const role = req.user.role
+    const id = req.params.id 
     const { fname, lname, username, password } = req.body;
 
-    const dup = await db("users").where("username", username).first();
+    if (role !== 'admin' && id != user_id) return send(res, { msg: 'ไม่มีสิทธิ์' }, 403);
 
-    if (dup) return send(res, { msg: "มีชื่อผู้ใช้แล้ว" }, 403);
+    await exist(res, 'users', {id: id})
 
-    await db("users")
-      .where({ id })
-      .update({ fname, lname, username, password });
-    send(res, { msg: "แก้ไขสำเร็จ" });
+    await db('users').where({ id: id }).update({ fname, lname, username, password });
+    send(res, { msg: 'แก้ไขผู้ใช้สำเร็จ' })
   } catch (e) {
-    err(res, e);
+    err(res, e)
   }
-};
-
+}
 // ลบผู้ใช้งาน
 exports.deluser = async (req, res) => {
   try {

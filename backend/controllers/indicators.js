@@ -139,11 +139,11 @@ exports.AddEvidence = async (req, res) => {
 // ยกเลิกหลักฐาน
 exports.delEvid = async (req, res) => {
   try {
-    const { evid_id } = req.params
+    const { indic_id } = req.params
+    const uid = req.user.id
+    await exist(res, 'evidence', {indic_id,user_id: uid})
 
-    await exist(res, 'evidence', {id: evid_id})
-
-    await db('evidence').where({ id: evid_id }).del()
+    await db('evidence').where({indic_id, user_id: uid}).del()
     send(res, { msg: "ลบหลักฐานสำเร็จ!" })
   } catch (e) {
     err(res, e)
