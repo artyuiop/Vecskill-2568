@@ -4,6 +4,15 @@
     themes: light --default
 }
 
+@font-face {
+    font-family: 'SOV_Laizen_Demo';
+    src: url('/SOV_Laizen_Demo.ttf');
+}
+
+.font-sign {
+    font-family: 'SOV_Laizen_Demo';
+}
+
 body{
      font-family: "Kanit", sans-serif;
 }
