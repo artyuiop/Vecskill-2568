@@ -1,6 +1,6 @@
 <template>
     <UiHeader title="มอบหมายการประเมิน" description="Assign assessment">
-        <UiButton title="เพิ่มข้อมูล" color="btn-primary" @click="openModal('create')" />
+        <UiButton title="เพิ่มข้อมูล" color="btn-primary btn-soft" @click="openModal('create')" />
     </UiHeader>
     <UiTable :cols="cols" :rows="assignments">
         <template #action="{ row }">

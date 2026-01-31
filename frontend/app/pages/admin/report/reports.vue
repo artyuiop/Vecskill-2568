@@ -1,5 +1,5 @@
 <template>
-    <div class="stats shadow w-full mb-2">
+    <div class="stats stats-vertical md:stats-horizontal shadow w-full mb-2">
         <div class="stat">
             <div class="stat-title">ผู้รับประเมิน</div>
             <div class="stat-value text-[25px]">{{ dataReport.info?.evaluatee_name || 'ยังไม่มีข้อมูล' }}</div>
@@ -20,8 +20,8 @@
         </div>
     </div>
     <UiHeader title="รายงานสรุปผลการประเมินรายบุคคล" description="Individual summary report">
-        <div class="flex gap-3">
-            <div class="fieldset w-50">
+        <div class="flex gap-3 w-full">
+            <div class="fieldset w-full md:w-60">
                 <legend>เลือกการประเมิน</legend>
                 <select class="select" v-model="eval_id">
                     <option v-for="evaltion in evaluation" :value="evaltion.id">
@@ -29,7 +29,7 @@
                     </option>
                 </select>
             </div>
-            <div class="fieldset w-50">
+            <div class="fieldset w-full md:w-60">
                 <legend>เลือกผู้รับการประเมิน</legend>
                 <select class="select" v-model="user_id">
                     <option v-for="evaltee in evaluatee" :value="evaltee.id">

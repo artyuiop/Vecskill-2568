@@ -108,10 +108,12 @@ definePageMeta({
   </div>
   <!-- Header -->
   <UiHeader :title="title" :description="'ของ ผู้รับประเมิน' + evaluatee_name">
-    <UiButton @click="showModal('modal_sign_comment')" title="ให้ความคิดเห็นและลายเซ็น"
-      color="btn-secondary btn-soft mr-2" />
-    <UiButton @click="showModal('modal_result')" title="ผลลัพธ์การประเมิน" color="btn-secondary btn-soft mr-2" />
-    <UiButton @click="handleSubmit" title="ยืนยันการส่งประเมิน" color="btn-primary mr-2" />
+    <div class="flex flex-col md:flex-row gap-2">
+      <UiButton @click="showModal('modal_sign_comment')" title="ให้ความคิดเห็นและลายเซ็น"
+        color="btn-secondary btn-soft mr-2" />
+      <UiButton @click="showModal('modal_result')" title="ผลลัพธ์การประเมิน" color="btn-secondary btn-soft mr-2" />
+      <UiButton @click="handleSubmit" title="ยืนยันการส่งประเมิน" color="btn-primary mr-2" />
+    </div>
   </UiHeader>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -133,7 +135,8 @@ definePageMeta({
             <UiBadge title="ผู้รับประเมินยังไม่แนบหลักฐาน" color="badge-error" />
           </div>
           <div v-else>
-            <UiBadge @click="openPreview(indic.file_path, indic.file_url)" :title="indic.file_path ? 'ดูหลักฐานไฟล์' : 'ดูหลักฐานลิ้งค์'" class="badge-primary"
+            <UiBadge @click="openPreview(indic.file_path, indic.file_url)"
+              :title="indic.file_path ? 'ดูหลักฐานไฟล์' : 'ดูหลักฐานลิ้งค์'" class="badge-primary"
               :icon="indic.file_path ? 'mdi mdi-file' : 'mdi mdi-link'" />
           </div>
         </UiCard>
