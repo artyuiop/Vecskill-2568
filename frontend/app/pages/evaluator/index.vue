@@ -16,6 +16,9 @@
                     <UiBadge title="ประเมิน" icon="mdi mdi-arrow-right" color="badge-primary" />
                 </NuxtLink>
             </template>
+            <template #committee_status="{row}">
+                <span>{{ row.committee_status || "ยังไม่ประเมิน" }}</span>
+            </template>
         </UiTable>
     </div>
 </template>
@@ -31,7 +34,7 @@ console.log(assign.value);
 const cols = [
     { field: "title", label: "รอบประเมิน" },
     { field: "evaluatee_name", label: "ชื่อ-สกุล" },
-    { field: "status", label: "สถานะ" },
+    { field: "committee_status", label: "สถานะ" },
     { field: "action", label: "จัดการ" },
 ];
 </script>

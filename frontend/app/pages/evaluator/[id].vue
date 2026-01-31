@@ -7,21 +7,23 @@ const evaluatee_name = route.query.name;
 const evaluatee_id = route.query.evaluatee_id;
 const title = route.query.title;
 const indicator = ref([]);
+const result_table = ref([])
 const cols_result = [
-  { field: '', label: 'ตัวชี้วัด' },
-  { field: '', label: 'ชื่อผู้รับประเมิน' },
-  { field: '', label: 'น้ำหนักคะแนน' },
-  { field: '', label: 'คะแนนตนเอง' },
-  { field: '', label: 'คะแนนกรรมการ' },
-  { field: '', label: 'คะแนนสุทธิ' },
+  { field: 'indic_name', label: 'ตัวชี้วัด' },
+  { field: 'evaluatee_name', label: 'ชื่อผู้รับประเมิน' },
+  // { field: '', label: 'น้ำหนักคะแนน' },
+  { field: 'self_display', label: 'คะแนนตนเอง' },
+  { field: 'comittee_display', label: 'คะแนนกรรมการ' },
+  { field: 'net_score', label: 'คะแนนสุทธิ' },
 ]
 
 const fetchIndicatorDetail = async () => {
   const res = await Fetch(`/api/assessments/indicators-detail/${assignId}/${evaluatee_id}`);
   indicator.value = res.indicators;
   res.indicators.forEach(indic => {
-    formScore.value[indic.id] = { score: '', hasIt: '' }
+    formScore.value[indic.id] = { score: null, hasIt: null }
   })
+  console.log(indicator.value)
 };
 
 // state ประเมิน
@@ -46,32 +48,47 @@ const submitSignComment = async () => {
   CloseModal('modal_sign_comment')
 }
 
-const handleSubmit = async() => {
-  if(confirm('คุณต้องการส่งประเมินหรือไม่')){
+const handleSubmit = async () => {
+  if (confirm('คุณต้องการส่งประเมินหรือไม่')) {
     const res = await Insert(`/api/assessments/submitAssess/${assignId}`, {})
-    console.log(res)
   }
 }
 
-const fetchResultTable = () => {
-
+const fetchResultTable = async () => {
+  const res = await Fetch(`/api/report/result-Table/${assignId}`)
+  result_table.value = res
 }
 
-// ดูหลักฐาน
-const openEvidence = (file_path, file_url) => {
-  if (!file_path && !file_url) return
+
+const selectedImageUrl = ref('');
+const openPreview = (file_path, file_url) => {
+  const config = useRuntimeConfig()
 
   if (file_path) {
+    selectedImageUrl.value = `${config.public.BASEAPI}/${file_path}`;
+    showModal('modal_preview_image');
+  } else if (file_url) {
+    window.open(file_url.startsWith('http') ? file_url : `https://${file_url}`, '_blank');
+  }
+};
 
+const calculateNetScore = (row) => {
+  const weight = row.weight || 1;
+
+  if (row.score_committee !== null) {
+    return (row.score_committee * weight).toFixed(2);
   }
 
-  if (file_url) {
-    window.location.href = file_url
+  if (row.bool_committee === 'have') {
+    return (1 * weight).toFixed(2);
   }
-}
+
+  return "0.00";
+};
 
 onMounted(() => {
   fetchIndicatorDetail();
+  fetchResultTable();
 });
 
 definePageMeta({
@@ -89,13 +106,16 @@ definePageMeta({
       <li><a>ประเมิน</a></li>
     </ul>
   </div>
+  <!-- Header -->
   <UiHeader :title="title" :description="'ของ ผู้รับประเมิน' + evaluatee_name">
     <UiButton @click="showModal('modal_sign_comment')" title="ให้ความคิดเห็นและลายเซ็น"
       color="btn-secondary btn-soft mr-2" />
     <UiButton @click="showModal('modal_result')" title="ผลลัพธ์การประเมิน" color="btn-secondary btn-soft mr-2" />
     <UiButton @click="handleSubmit" title="ยืนยันการส่งประเมิน" color="btn-primary mr-2" />
   </UiHeader>
+
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
     <UiCard v-for="(indic, i) in indicator" class="mb-3 p-3">
       <UiBadge color="badge-primary badge-xs" :title="'ตัวชี้วัดที่' + `${i + 1}`" />
       <h1 class="font-bold text-[18px]">{{ indic.name }}</h1>
@@ -105,7 +125,7 @@ definePageMeta({
       <div class="grid grid-cols-2 gap-3">
         <UiCard>
           <h1>คะแนนประเมินตนเอง</h1>
-          <p></p>
+          <p>{{ Number(indic.self_score).toFixed(2) || indic.self_bool }}</p>
         </UiCard>
         <UiCard>
           <h1>หลักฐานที่ผู้รับประเมินที่แนบ</h1>
@@ -113,7 +133,8 @@ definePageMeta({
             <UiBadge title="ผู้รับประเมินยังไม่แนบหลักฐาน" color="badge-error" />
           </div>
           <div v-else>
-            <UiBadge @click="openEvidence" title="ดูหลักฐาน" class="badge-primary" icon="mdi mdi-file" />
+            <UiBadge @click="openPreview(indic.file_path, indic.file_url)" :title="indic.file_path ? 'ดูหลักฐานไฟล์' : 'ดูหลักฐานลิ้งค์'" class="badge-primary"
+              :icon="indic.file_path ? 'mdi mdi-file' : 'mdi mdi-link'" />
           </div>
         </UiCard>
         <!-- <UiInput v-model="formSignComment[indic.id].sign_file" label="ลงนามลายเซ็น" class="mt-3" /> -->
@@ -134,6 +155,7 @@ definePageMeta({
         <UiButton color="btn-primary px-7" @click="submitScore(indic.id)" title="ประเมิน" />
       </div>
     </UiCard>
+
   </div>
 
   <!-- Modal ให้ความคิดเห็นและลายเซ็น -->
@@ -149,7 +171,27 @@ definePageMeta({
     </div>
   </UiModal>
 
+  <!-- Modal - ผลลัพธ์การประเมิน -->
   <UiModal modal_id="modal_result" title="ผลลัพธ์การประเมิน" size="max-w-4xl">
-    <UiTable :cols="cols_result" :isSearch="false"/>
+    <UiTable :cols="cols_result" :rows="result_table" :isSearch="false">
+      <template #self_display="{ row }">
+        <span>{{ row.score || row.bool_score || "ยังไม่ประเมิน" }}</span>
+      </template>
+      <template #comittee_display="{ row }">
+        <span>{{ row.score_committee || row.bool_committee || "ยังไม่ประเมิน" }}</span>
+      </template>
+      <template #net_score="{ row }">
+        <span>
+          {{ calculateNetScore(row) }}
+        </span>
+      </template>
+    </UiTable>
   </UiModal>
+
+  <UiModal modal_id="modal_preview_image" title="หลักฐานการประเมิน" size="max-w-2xl">
+    <div class="flex justify-center p-2">
+      <img :src="selectedImageUrl" class="rounded-lg shadow-lg max-w-full h-auto" />
+    </div>
+  </UiModal>
+
 </template>

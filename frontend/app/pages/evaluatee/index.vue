@@ -48,7 +48,7 @@
 
     <UiModal modal_id="modal_comment" :title="'ดูความคิดเห็นกรรมการ ' + selectAssignName">
         <h1>ความคิดเห็นกรรมการ</h1>
-        <UiBadge color="badge-primary" :title="evaluator_comment?.[0]?.comment" />
+        <UiBadge color="badge-primary mt-1" :title="evaluator_comment?.[0]?.comment || 'ยังไม่มีความคิดเห็น'" />
     </UiModal>
 
     <!-- Modal - ประเมินตนเอง และ แนบหลักฐาน -->
@@ -59,7 +59,7 @@
                 <div class="fieldset">
                     <legend>คะแนนที่ประเมินตนเอง</legend>
                     <select v-model="form_score.score" class="select w-full" v-if="selectModalIndic?.type === 'score'">
-                        <option v-for="level in selectModalIndic?.level" :value="level.id">
+                        <option v-for="level in selectModalIndic?.level" :value="level.level">
                             {{ level.level }} {{ level.description || level.descripton }}
                         </option>
                     </select>
@@ -200,11 +200,7 @@ const handleSubmit = async () => {
         return showAlert('กรุณาแนบไฟล์หลักฐาน', "error")
     }
 
-    // const resa = await api.post(`/api/assessments/give-score/${assignId}`, form_score.value)
-    // console.log(resa.da)
-
-    await Insert(`/api/assessments/give-score/${assignId}`, form_score.value);
-    // console.log(resGive.data)
+    await api.post(`/api/assessments/give-score/${assignId}`, form_score.value)
     if (type_file === "url") {
         formdata.append("file_url", form_upload.value.file_url);
     } else {
@@ -222,8 +218,19 @@ const handleFileChange = async (e) => {
     form_upload.value.file = e.target.files[0];
 };
 
+// Export PDF
 const handleExportPdf = async () => {
+    const currentAssign = assignments.value.find(a => a.assign_id === selectAssignId.value)
+    const eval_id = currentAssign.eval_id
+    console.log(eval_id)
 
+    const res = await api.get(`/api/report/export-pdf/${eval_id}`, {
+        responseType: 'blob'
+    })
+    console.log(res)
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+    window.open(url, '_blank')
 }
 
 watch(selectAssignId, (newId) => {
