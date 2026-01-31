@@ -1,21 +1,18 @@
 const db = require('../config/db')
 const { send, err } = require('../utils/help')
 
-exports.EvaluationCheck = async(req , res, next) => {
+exports.EvaluationCheck = async (req, res, next) => {
     try {
-        const id = req.params.eval_id
+        const today = new Date().toLocaleDateString('en-CA');
+        const id = req.params.assign_id
+        const ev = await db('assignments as a')
+            .join('evaluations as e', 'a.eval_id', 'e.id')
+            .where('a.id', id)
+            .select('e.start_date', 'e.end_date').first();
 
-        const evalDate = await db('evaluations').where({id}).first()
-        if(!evalDate) return send(res, {msg: "ไม่มี Eval_id"}, 400)
+        if (!ev) return send(res, { msg: "ไม่พบข้อมูล!" }, 403);
+        if (today < ev.start_date || today > ev.end_date) return send(res, { msg: "ไม่อยู่ในช่วงเวลาประเมิน!" }, 403);
 
-        const today = new Date().toLocaleDateString('en-CA')
-        const {start_date: start, end_date: end} = evalDate
-
-        console.log(evalDate)
-        if(today < start) return send(res, {msg: "ยังไม่ถึงวันปรเมิน!!"}, 403)
-        if(today > end) return send(res, {msg: "เลยกำหนด!!"}, 403)
-        next()
-    } catch(e) {
-        err(res, e) 
-    }
+        next();
+    } catch (e) { err(res, e); }
 }
