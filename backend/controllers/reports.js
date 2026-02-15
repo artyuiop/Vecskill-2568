@@ -7,36 +7,39 @@ const PDFDocument = require("pdfkit");
 // แสดงผลลัพธ์การประเมิน แต่ละตัวชี้วัด ในรูปแบบของตาราง และสรุปภาพรวมของผู้รับการประเมินรายบุคคล
 exports.getSummryTableEvaluatee = async (req, res) => {
   try {
-    const { assign_id } = req.params;
+    const {assign_id} = req.params
+    const uid = req.user.id
 
-    await exist(res, "assignments", { id: assign_id });
-
-    const rows = await db("assignments as a")
-      .join("users as u", "a.evaluatee_id", "u.id")
-      .join("users as ut", "a.evaluator_id", "ut.id")
-      .join("indicators as i", "i.eval_id", "a.eval_id")
-      .leftJoin("assessments as asm", (q) => {
-        q.on("asm.indic_id", "i.id")
-          .andOn("asm.assign_id", "a.id")
-          .andOn("asm.role", db.raw("?", "self"));
+    const row = await db('assignments as a')
+      .join('users as u', 'a.evaluatee_id', 'u.id')
+      .join('users as ut', 'a.evaluator_id', 'ut.id')
+      .join('indicators as i', 'i.eval_id', 'a.eval_id')
+      .leftJoin('assessments as self', q => {
+          q.on('self.assign_id', 'a.id')
+            .andOn('self.indic_id', 'i.id')
+            .andOnVal('self.role', 'self')
       })
-      .leftJoin("assessments as aa", (q) => {
-        q.on("aa.indic_id", "i.id")
-          .andOn("aa.assign_id", "a.id")
-          .andOn("aa.role", db.raw("?", "committee"));
+      .leftJoin('assessments as com', q => {
+          q.on('com.assign_id', 'a.id')
+            .andOn('com.indic_id', 'i.id')
+            .andOnVal('com.role', 'committee')
       })
-      .where({ "a.id": assign_id })
+      .where('a.id', assign_id)
       .select(
-        "i.id as indic_id",
-        "i.name as indic_name",
-        fn("u", "evaluatee_name"),
-        "asm.score",
-        "asm.bool_score",
-        fn("ut", "evaluator_name"),
-        "aa.score as score_committee",
-        "aa.bool_score as bool_committee",
-      );
-    send(res, rows);
+        'i.id',
+        'i.name',
+        'u.id as evaluatee_id',
+        fn('u', 'evaluatee_name'),
+        'ut.id as evaluator_id',
+        fn('ut', 'evaluator_name'),
+        'self.score as self_score',
+        'self.bool_score as self_bool',
+        'com.score as com_score',
+        'com.bool_score as com_bool',
+      )
+
+    send(res, row)
+
   } catch (e) {
     err(res, e);
   }
@@ -45,46 +48,40 @@ exports.getSummryTableEvaluatee = async (req, res) => {
 // แสดงผลสรุปการประเมินรายกรรมการ
 exports.SummaryEvaluator = async (req, res) => {
   try {
-    const { eval_id } = req.params;
-    const { total } = await db("indicators").where({ eval_id }).count("id as total").first();
-    const rows = await db("assignments as a")
-      .join("users as ut", "a.evaluator_id", "ut.id")
-      .leftJoin("assessments as asm", q => {
-        q.on("asm.assign_id", "a.id")
-        .andOnVal("asm.role", "committee");
-      })
-      .where("a.eval_id", eval_id)
-      .groupBy("ut.id")
-      .select(
-        'ut.id as evaluator_id',
-        fn("ut", "evaluator_name"),
-        db.raw("COUNT(DISTINCT a.id) as assigned"),
-        db.raw(
-          `
+      const {eval_id} = req.params
+
+      const {total} = await db('indicators').where({eval_id}).count('* as total').first()
+
+      const row = await db('assignments as a')
+        .join('users as u', 'a.evaluator_id', 'u.id')
+        .join('indicatos as i', 'a.eval_id', 'i.id')
+        .leftJoin('assessments as asm', q => {
+          q.on('asm.assing_id', 'i.id')
+            .andOn('asm.indic_id', 'i.id')
+            .andOnVal('asm.role', 'committee')
+        })
+        .where('a.eval_id', eval_id)
+        .groupBy('u.id')
+        .countDistinct('a.id as  assigned')
+        .select(
+          'u.id as evaluator_id', fn('u', 'evaluator_id'),
+          db.raw(`
             COUNT(DISTINCT CASE
-                WHEN asm.status = 'completed'
-                AND asm.assign_id IN (
-                SELECT assign_id
-                FROM assessments
-                WHERE role = 'committee'
-                GROUP BY assign_id
-                HAVING COUNT(indic_id) = ?
-                )
-                THEN a.id
-            END) as completed
-            `,
-          [total],
-        ),
-      );
+                WHEN asm.status AND asm.assign_id IN(
+                  SELECT assign_id FROM assessments WHERE role = 'committee' GROUP BY assign_id HAVING COUNT(indic_id) = ?
+                ) THEN a.id END
+            ) AS completed
+          `, [total])
+      )
 
-    const result = rows.map((r) => {
-      let status = "ยังไม่เริ่ม";
-      if (r.completed > 0 && r.completed < r.assigned) status = "กำลังประเมิน";
-      if (r.completed === r.assigned) status = "เสร็จสิ้น";
-      return { ...r, status };
-    });
+    const data = row.map((r) => {
+      let status = 'กำลังดำเนินการ'
+      if(r.completed > 0|| r.completed < r.assigned ) status
+      if(r.completed === r.assigned) status = 'เสร็จสิ้น'
+      return {...r  , status}
+    })
 
-    send(res, result);
+    send(res, data)
   } catch (e) {
     err(res, e);
   }
@@ -94,38 +91,34 @@ exports.SummaryEvaluator = async (req, res) => {
 exports.getDetailSummaryEvaluator = async(req, res) => {
     try {
         const {eval_id , evaluator_id} = req.params
-        
-        const rows = await db('assignments as asm')
-        .join('users as u', 'asm.evaluatee_id', 'u.id')
-        .join('indicators as i', 'i.eval_id', 'asm.eval_id')
-        .leftJoin('assessments as a', q => {
-            q.on('a.assign_id', '=', 'asm.id')
-            .andOn('a.indic_id', '=', 'i.id')
-            .andOnVal('a.role', '=', 'committee')
-        })
-        .leftJoin('levels as lv', 'lv.id', 'a.score')
-        .where({
-            'asm.eval_id': eval_id,
-            'asm.evaluator_id': evaluator_id
-        })
-        .groupBy('asm.id')
-        .select(
+
+        const row = await db('assignments as a')
+          .join('users as u', 'a.evaluatee_id', 'u.id')
+          .join('indicators as i', 'a.eval_id', 'i.eval_id')
+          .leftJoin('assessments as asm', q => {
+            q.on('asm.assign_id', 'a.id')
+              .andOn('asm.indic_id', 'i.id')
+              .andOnVal('asm.role', 'committee')
+          })
+          .leftJoin('levels as l', 'l.id', 'asm.score')
+          .where({'a.eval_id': eval_id , 'a.evaluator_id': evaluator_id})
+          .groupBy('a.id')
+          .select(
+            'u.id as evaluatee_id',
             fn('u', 'evaluatee_name'),
-            // สถานะ
-            statusCase('a.id', 'a.status', 'i.id'),
-            'a.id as asses_id',
-            'a.bool_score',
-            // คะแนนรวม
+            statusCase('asm.id', 'asm.status', 'i.id'),
             db.raw(`
               SUM(
                 CASE
-                  WHEN i.type = 'score' THEN lv.level * i.weight
-                  WHEN i.type = 'boolean' AND a.bool_score = 'have' THEN i.weight
+                  WHEN i.type = 'score' THEN i.weight
+                  WHEN i.type = 'boolean' AND asm.bool_score = 'มี' THEN  l.level * i.weight
                   ELSE 0 END
-              ) AS total_score
+              )  AS total_score
+              
             `)
-        )
-        send(res, rows)
+          )
+
+        send(res , row)
     }catch(e) {
         err(res, e)
     }
@@ -210,34 +203,36 @@ exports.ExportPDF = async (req, res) => {
 // แสดงรายงานผลการประเมินรายบุคคลได้
 exports.reportByuser = async (req, res) => {
   try {
-    const { eval_id, user_id } = req.params;
+    const {eval_id , user_id} = req.params
 
-    const info = await db("assignments as a")
-      .join("users as u", "a.evaluatee_id", "u.id")
-      .join("users as ut", "a.evaluator_id", "ut.id")
-      .join("evaluations as e", "a.eval_id", "e.id")
-      .leftJoin("signatures as s", "a.id", "s.assign_id")
-      .select("a.id as assign_id", fn('u', 'evaluatee_name'),fn('ut', 'evaluator_name'), "e.title", "s.comment", "s.sign_file")
-      .where({ "a.eval_id": eval_id, "a.evaluatee_id": user_id })
-      .first();
+    const info = await db('assignments as a')
+      .join('users as u', 'a.evaluatee_id', 'u.id')
+      .join('users as ut', 'a.evaluator_id', 'ut.id')
+      .join('evaluations as e', 'a.eval_id', 'e.id')
+      .leftJoin('signedtures as s', 's.assign_id', 'a.id')
+      .where({'a.eval_id': eval_id , 'a.evaluatee_id': user_id})
+      .select('a.id as assign_id', 'e.id as eval_id', 'e.title', fn('u', 'evaluatee_name'), fn('ut', 'evaluator_name'), 's.comment', 's.sign_file')
+      .first()
 
-    if (!info) return res.status(404).send("ไม่พบข้อมูล");
 
-    const details = await db("indicators as i")
-      .leftJoin("assessments as s", q => 
-        q.on("s.indic_id", "i.id")
-        .andOnVal("s.assign_id", info.assign_id)
-        .andOnVal("s.role", "self"))
+      const detail = await db('indicators as i')
+        .leftJoin('assessments as self', q => {
+          q.on('self.asign_id', info.assign_id
+            .andOnVal('self.indic_id', 'i.id')
+            .andOnVal('self.role', 'self')
+          )
+        })
+        .leftJoin('assessments as com', q => {
+          q.on('com.asign_id', info.assign_id
+            .andOnVal('com.indic_id', 'i.id')
+            .andOnVal('com.role', 'committee')
+          )
+        })
+        .leftJoin('levels as l', 'l.id', 'com.scrore')
+        .where('i.eval_id', eval_id)
+        .select('i.name', 'i.weight', 'self.score as self_score', 'self.bool_score as self_bool', 'com.score as com_score', 'com.bool_score as com_bool')
 
-      .leftJoin("assessments as c", q => 
-        q.on("c.indic_id", "i.id")
-        .andOnVal("c.assign_id", info.assign_id)
-        .andOnVal("c.role", "committee"))
-      .leftJoin("levels as l", "c.score", "l.id")
-      .where("i.eval_id", eval_id)
-      .select("i.name", "i.weight", "s.score as self_score" ,"s.bool_score as self_bool", "c.score as com_score" ,"c.bool_score as com_bool")
-
-    res.json({ info, details });
+      send(res, {info , detail})
   } catch (e) {
     err(res, e);
   }

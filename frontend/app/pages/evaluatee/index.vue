@@ -152,12 +152,21 @@ const openModalComment = async () => {
 };
 
 // function หาชื่อรอบประเมินตามที่เลือก
+// const selectAssignName = computed(() => {
+//     const current = assignments.value?.find(
+//         (a) => a.assign_id === selectAssignId.value,
+//     );
+//     return current ? current.title : "ไม่มีรอบประเมิน";
+// });
+
 const selectAssignName = computed(() => {
-    const current = assignments.value?.find(
-        (a) => a.assign_id === selectAssignId.value,
-    );
-    return current ? current.title : "ไม่มีรอบประเมิน";
-});
+    const current = assignments.value?.find((a) => {
+        return a.assign_id === selectAssignId.value
+    })
+
+    return current ? current.title : "ไม่มีรอบประเมิน"
+})
+
 
 // คำนวณ progress
 const progressPercent = computed(() => {
@@ -165,6 +174,7 @@ const progressPercent = computed(() => {
     const [current, total] = progress.value.progress.split(" / ").map(Number);
     return total > 0 ? (current / total) * 100 : 0;
 });
+
 
 // State ประเมินตนเอง & อัพโหลด
 const form_score = ref({
@@ -228,10 +238,14 @@ const handleExportPdf = async () => {
     const res = await api.get(`/api/report/export-pdf/${eval_id}`, {
         responseType: 'blob'
     })
-    // console.log(res)
+
     const blob = new Blob([res.data], { type: 'application/pdf' })
     const url = window.URL.createObjectURL(blob)
     window.open(url, '_blank')
+    // console.log(res)
+    // const blob = new Blob([res.data], { type: 'application/pdf' })
+    // const url = window.URL.createObjectURL(blob)
+    // window.open(url, '_blank')
 }
 
 watch(selectAssignId, (newId) => {
@@ -242,8 +256,8 @@ onMounted(async () => {
     if (store.assignments.length === 0) {
         await store.fetchAllData(true);
     }
-    if (assignments.value.length > 0) {
-        selectAssignId.value = assignments.value[0].assign_id;
+    if(assignments.value.length > 0){
+        selectAssignId.value = assignments.value[0].assign_id
     }
 });
 </script>
