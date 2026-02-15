@@ -1,0 +1,38 @@
+meta {
+  name: AddLevels
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:5000/api/indicators/levels/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+    {
+      "level": 1,
+      "description": "แย่มาก"
+    },
+    {
+      "level": 2,
+      "description": "พอใช้"
+    },
+    {
+      "level": 3,
+      "description": "ดี"
+    },
+    {
+      "level": 4,
+      "description": "ดีมาก"
+    }
+  ]
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

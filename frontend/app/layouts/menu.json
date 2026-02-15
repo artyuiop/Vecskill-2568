@@ -1,0 +1,47 @@
+{
+  "admin": [
+    {
+      "name": "Main",
+      "icon": "mdi mdi-view-dashboard-outline",
+      "children": [
+        { "name": "หน้าหลัก", "path": "/admin" },
+        { "name": "สรุปผลการประเมินรายกรรมการ", "path": "/admin/report/result-comittee" },
+        { "name": "ติดตามสถานะการประเมิน", "path": "/admin/report/track-status" },
+        { "name": "รายงานผลการประเมินรายบุคคล", "path": "/admin/report/reports" }
+      ]
+    },
+    {
+      "name": "Assessment",
+      "icon": "mdi mdi-target",
+      "children": [
+        { "name": "เพิ่มตัวชี้วัด", "path": "/admin/assessments/indicator" },
+        { "name": "มอบหมายงาน", "path": "/admin/assessments/assignment" }
+      ]
+    },
+    {
+      "name": "Manage",
+      "icon": "mdi mdi-playlist-edit",
+      "children": [
+        { "name": "จัดการหัวข้อการประเมิน", "path": "/admin/manage/evaluation" },
+        { "name": "จัดการผู้รับการประเมิน", "path": "/admin/manage/evaluatee" },
+        { "name": "จัดการกรรมการผู้ประเมิน", "path": "/admin/manage/evaluator" }
+      ]
+    }
+  ],
+  "evaluator": [
+    {
+      "name": "Main",
+      "children": [
+        { "name": "หน้าหลัก", "path": "/evaluator"}
+      ]
+    }
+  ],
+  "evaluatee": [
+    {
+      "name": "Main",
+      "children": [
+        { "name": "ประเมินตนเอง", "path": "/evaluatee"}
+      ]
+    }
+  ]
+}

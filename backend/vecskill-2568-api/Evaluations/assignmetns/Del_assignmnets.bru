@@ -1,0 +1,16 @@
+meta {
+  name: Del_assignmnets
+  type: http
+  seq: 3
+}
+
+delete {
+  url: http://localhost:5000/api/assignments/3
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

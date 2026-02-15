@@ -1,0 +1,30 @@
+meta {
+  name: Add_evidence
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:5000/api/indicators/evidence/1
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{evaluator}}
+}
+
+body:multipart-form {
+  description: asd @contentType(text)
+  file: @file(C:\Users\Lenovo\Downloads\Receipt.pdf)
+  ~file_url: asdasd
+}
+
+body:file {
+  ~file: @file()
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
