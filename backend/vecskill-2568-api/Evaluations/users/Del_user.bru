@@ -1,0 +1,16 @@
+meta {
+  name: Del_user
+  type: http
+  seq: 5
+}
+
+delete {
+  url: http://localhost:5000/api/users/8
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

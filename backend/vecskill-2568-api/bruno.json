@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "vecskill-2568-api",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

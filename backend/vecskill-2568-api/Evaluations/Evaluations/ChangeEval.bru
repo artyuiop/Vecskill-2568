@@ -1,0 +1,15 @@
+meta {
+  name: ChangeEval
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://localhost:5000/api/evaluations/
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

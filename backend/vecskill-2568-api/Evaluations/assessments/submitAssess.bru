@@ -1,0 +1,20 @@
+meta {
+  name: submitAssess
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:5000/api/assessments/submitAssess/4
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{evaluator}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

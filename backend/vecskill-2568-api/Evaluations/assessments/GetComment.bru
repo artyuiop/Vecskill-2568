@@ -1,0 +1,20 @@
+meta {
+  name: GetComment
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:5000/api/assessments/get-comment/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{user}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

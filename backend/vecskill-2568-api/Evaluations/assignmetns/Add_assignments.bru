@@ -1,0 +1,26 @@
+meta {
+  name: Add_assignments
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:5000/api/assignments/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "eval_id": 1,
+    "evaluatee_id": 9,
+    "evaluator_id": 1,
+    "position": "หัวหน้ากลุ่ม"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
