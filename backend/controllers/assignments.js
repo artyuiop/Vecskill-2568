@@ -59,36 +59,42 @@ exports.delAssign = async (req, res) => {
 // แสดงข้เอมูลที่ต้องประเมิน
 exports.ListAssign = async (req, res) => {
   try {
-    const user = req.user;
+    const user = req.user
 
-    const rows = await db("assignments as a")
-      .join("users as u", "a.evaluatee_id", "u.id")
-      .join("users as ut", "a.evaluator_id", "ut.id")
-      .join("evaluations as e", "a.eval_id", "e.id")
-      .leftJoin("assessments as asm_self", (q) => {
-        q.on("a.id", "asm_self.assign_id").andOn("asm_self.role", db.raw("'self'"));
+    const row = await db('assignmetns as a')
+      .join('users as u', 'a.evaluatee_id', 'u.id')
+      .join('users as ut', 'a.evaluator_id', 'ut.id')
+      .join('evaluations as e', 'a.eval_id', 'e.id')
+      .leftJoin('assessments as self', q => {
+        q.on('self.assign_id', 'a.id')
+          .andOn('self.indic_id', 'i.id')
+          .andOnVal('self.role', 'self')
       })
-      .leftJoin("assessments as asm_committee", (q) => {
-        q.on("a.id", "asm_committee.assign_id").andOn("asm_committee.role", db.raw("'committee'"));
+      .leftJoin('assessments as com', q => {
+        q.on('com.assign_id', 'a.id')
+          .andOn('com.indic_id', 'i.id')
+          .andOnVal('com.role', 'committee')
       })
-      .modify((q) => {
-        if (user.role === "evaluator") q.where("a.evaluator_id", user.id);
-        else if (user.role === "evaluatee") q.where("a.evaluatee_id", user.id);
+      .groupBy('a.id')
+      .modify(q => {
+        if(user.role === 'evaluatee') q.where('a.evaluatee_id', user.id)
+        else if(user.role === 'evaluator') q.where('a.evaluator_id', user.id)
       })
       .select(
-        "asm_self.status as self_status",
-        "asm_committee.status as committee_status",
-        "a.id as assign_id",
-        "a.position",
-        "a.evaluatee_id",
-        fn("u", "evaluatee_name"),
-        "a.evaluator_id",
-        fn("ut", "evaluator_name"),
-        "e.id as eval_id",
-        "e.title",
+        'a.id as assign_id',
+        'a.position',
+        'self.status as self_status',
+        'com.status as com_status',
+        'u.id as evaluatee_id',
+        fn('u', 'evaluatee_name'),
+        'ut.id as evaluator_id',
+        fn('ut', 'evaluator_name'),
+        'e.id as eval_id',
+        'e.title'
       )
-      .groupBy("a.id");
-    send(res, rows);
+
+    send(res, row)
+
   } catch (e) {
     err(res, e);
   }

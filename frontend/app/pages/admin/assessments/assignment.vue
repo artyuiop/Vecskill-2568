@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
     <UiHeader title="มอบหมายการประเมิน" description="Assign assessment">
         <UiButton title="เพิ่มข้อมูล" color="btn-primary btn-soft" @click="openModal('create')" />
     </UiHeader>
@@ -109,4 +109,4 @@ const handleSubmit = async () => {
     CloseModal("modal_assignment");
 };
 
-</script>
+</script> -->

@@ -2,62 +2,43 @@ const db = require("../config/db");
 const { send, err } = require("../utils/help");
 
 
-// Function รวมชื่อ
-const fn = (a = "u", al = "fullName") =>
-  db.raw(`CONCAT( ${a}.fname,' ', ${a}.lname) as ${al}`);
-
-// Function สถานะ
-const statusCase = (field , sumField , countField) => {
+const fn = (a = 'u', al = 'fullName') => db.raw(`CONCAT(${a}.fname,' ',${a}.lname) as ${al}`)
+const statusCase = (r , s , c) => {
   return db.raw(`
-    CASE 
-      WHEN COUNT(${field}) = 0 THEN 'ยังไม่ดำเนิน'
-      WHEN SUM(${sumField} = 'completed') < COUNT(${countField}) THEN 'กำลังดำเนินอยู่'
-      ELSE 'เสร็จสิ้น' END as status
-    `)
+      CASE
+        WHEN COUNT(${r}) = 0 THEN 'ยังไม่ดำเนินการ'
+        WHEN SUM(${s} = 'completeed') < COUNT(${c}) THEN 'กำลังดำเนินการ'
+        ELSE 'เสร็จสิ้น' END AS status
+  `)
 }
 
-// Function ติดตามสถานะ
-const trackStatusFuc = (eval_id, role, userField) => {
-  return db('assignments as asm')
-    .join('users as u', `asm.${userField}`, 'u.id')
-    .join('indicators as i', 'i.eval_id', 'asm.eval_id')
-    .leftJoin('assessments as a', q => {
-      q.on('a.assign_id', '=', 'asm.id')
-        .andOn('a.indic_id', '=', 'i.id')
-        .andOn('a.role', db.raw('?', [role]))
+const trackStatusFn = (eval_id , role , field) => {
+  return db('assignments as a')
+    .join('users as u', `a.${field}`, 'u.id')
+    .join('indicators as i', 'a.eval_id', 'i.eval_id')
+    .leftJoin('assessments as asm', q  => {
+        q.on('asm.assign_id', 'a.id')
+          .andOn('asm.indic_id', 'i.id')
+          .andOnVal('asm.role', [role])
     })
-    .where('asm.eval_id', eval_id)
+    .where('a.eval_id', eval_id)
     .groupBy('u.id')
-    .select(
-      fn('u', 'fullName'),
-      statusCase('a.id', 'a.status', 'i.id'),
-    )
+    .select(fn('u'), statusCase('asm.id', 'asm.status', 'i.id'))
 }
 
-// Map push Level
-const mapIndicators = (rows) => {
-  const map = {};
-  rows.forEach(r => {
-    map[r.id] ??= { ...r, level: [] };
-    if (r.level_id)
-      map[r.id].level.push({
+
+const mapInidcaotrs = (row) => {
+  const data = {}
+  row.forEach(r => {
+    data[r.id] ??= {...r , levels: []}
+    if(r.level_id) {
+      data[r.id].levels.push({
         id: r.level_id,
         level: r.level,
-        description: r.level_description,
-      });
-  });
-  return Object.values(map);
-};  
+        description: r.level_desc
+      })
+    }
+  })
 
-// CheckNotExist
-const exist = async (res ,table, where) => {
-  const record = await db(table).where(where).first()
-  if (!record) {
-    send(res, { msg: 'ไม่พบข้อมูล' }, 404)
-    return null
-  }
-  return record
+  return Object.values(data)
 }
-
-
-module.exports = { fn, trackStatusFuc , mapIndicators, exist , statusCase};

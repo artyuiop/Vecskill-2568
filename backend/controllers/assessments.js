@@ -55,49 +55,43 @@ exports.giveScore = async (req, res) => {
 // ดูความคืบหน้าแต่ละตัวชี้วัด & ดูภาพรวมตัวชี้วัด
 exports.getIndicatorProgress = async (req, res) => {
   try {
-    const { assign_id } = req.params;
-    const uid = req.user.id;
+    const {assign_id} = req.params
+    const uid = req.user.id
 
-    const rows = await db("indicators as i")
-      .join("assignments as asm", "i.eval_id", "asm.eval_id")
-      .leftJoin("assessments as a", (q) =>
-        q
-          .on("i.id", "a.indic_id")
-          .andOn("a.assign_id", "asm.id")
-          .andOn("a.role", db.raw("'self'")),
-      )
-      .leftJoin("evidence as e", (q) =>
-        q.on("i.id", "e.indic_id").andOn("e.user_id", "asm.evaluatee_id"),
-      )
-      .leftJoin("levels as l", "l.indic_id", "i.id")
-      .where({ "asm.id": assign_id, "asm.evaluatee_id": uid })
+    const row = await db('assignments as a')
+      .join('indicators as i', 'a.eval_id', 'i.eval_id')
+      .leftJoin('levels as l', 'l.indic_id', 'i.id')
+      .leftJoin('assessments as asm', q =>{
+        q.on('asm.assing_id', 'a.id')
+          .andOn('asm.indic_id', 'i.id')
+          .andOnVal('asm.role', 'self')
+      })
+      .leftJoin('evidence as e', q => {
+        q.on('e.indic_id', 'i.id')
+          .andOn('e.user_id', 'a.evaluatee_id')
+      })
+      .where({'a.id': assign_id , 'a.evaluatee_id': uid})
       .select(
-        "i.*",
-        "a.score as self_score",
-        "a.status",
-        "e.file_path",
-        "e.file_url",
-        "l.id as level_id",
-        "l.level",
-        "l.description as level_description",
-      );
+        'i.*',
+        'l.id as level_id',
+        'l.level',
+        'l.description as level_desc',
+        'e.file_path',
+        'e.file_url',
+        'asm.status'
+      )
 
-    const indicator = mapIndicators(rows);
+    const indicators = mapInidcaotrs(row)
 
-    console.log(indicator);
-    const done = indicator.filter((i) => i.status === "completed").length;
-    const total = indicator.length;
+    const done = indicator.filter((i) => i.status === 'completed').length
+    const all = indicator.length
 
     send(res, {
-      Progress: `${done} / ${total}`,
-      status:
-        done === 0
-          ? "ยังไม่ดำเนินการ"
-          : done < total
-            ? "กำลังดำเนินการ"
-            : "เสร็จสิ้น",
-      indicators: indicator,
-    });
+      progress: `${done} / ${all}`,
+      status: done === 0 ? 'ยังไม่ดำเนินการ' : done < all ? 'กำลังดำเนินการ' : 'เสร็จสิ้น',
+      indicators
+    })
+
   } catch (e) {
     err(res, e);
   }
@@ -150,16 +144,19 @@ exports.getComments = async (req, res) => {
 // ติดตามสถานะของ ผู้รับประเมิน
 exports.trackStatus = async (req, res) => {
   try {
-    const { eval_id, type } = req.params;
-    const data = {
-      self: ["self", "evaluatee_id"],
-      committee: ["committee", "evaluator_id"],
-    };
-    const [role, field] = data[type];
+    const {eval_id , type} = req.params
 
-    const rows = await trackStatusFuc(eval_id, role, field)
-    send(res, {
-rows});
+    const data = {
+      self: ['self', 'evaluatee_id'],
+      committee: ['committee', 'evaluator_id'],
+    }
+
+    const [role , field] = data[type]
+
+    const row = await trackStatusFn(eval_id , role , field)
+
+    send(res , row)
+
   } catch (e) {
     err(res, e);
   }
@@ -168,44 +165,36 @@ rows});
 // แสดงคะแนนที่ผู้รับการประเมิน ประเมินตนเอง & หัวข้อ ตัวชี้วัด รายละเอียดข้อมูล และหลักฐาน
 exports.getEvaluationDetail = async (req, res) => {
   try {
-    const { assign_id, user_id } = req.params;
-    const etid = req.user.id;
+      const {assign_id , user_id} = req.params
+      const utid = req.user.id
 
-    await exist(res, "assignments", {
-      id: assign_id,
-      evaluatee_id: user_id,
-      evaluator_id: etid,
-    });
-    const rows = await db("assignments as a")
-      .join("indicators as i", "i.eval_id", "a.eval_id")
-      .leftJoin("levels as lv", "lv.indic_id", "i.id")
-      .leftJoin('assessments as asm', q => {
-        q.on('asm.assign_id', 'a.id')
-          .andOn('asm.indic_id', '=', 'i.id')
-          .andOnVal('asm.role', '=', 'self')
+      const row = await db('assignments as a')
+      .join('indicators as i', 'a.eval_id', 'i.eval_id')
+      .leftJoin('levels as l', 'l.indic_id', 'i.id')
+      .leftJoin('assessments as asm', q =>{
+        q.on('asm.assing_id', 'a.id')
+          .andOn('asm.indic_id', 'i.id')
+          .andOnVal('asm.role', 'self')
       })
-      .leftJoin("evidence as ed", (q) => {
-        q.on("ed.indic_id", "=", "i.id")
-          .andOn("ed.user_id", db.raw("?", [user_id]))
+      .leftJoin('evidence as e', q => {
+        q.on('e.indic_id', 'i.id')
+          .andOn('e.user_id', 'a.evaluatee_id')
       })
-      .where({ "a.id": assign_id })
+      .where({'a.id': assign_id , 'a.evaluatee_id': uid})
       .select(
-        "i.id",
-        "i.name",
-        "i.description",
-        "i.type",
-        "ed.file_path",
-        "ed.file_url",
-        "ed.description as evidence_desc",
-        "lv.id as level_id",
-        "lv.level",
-        "lv.description as level_description",
-        "asm.score as self_score",
-        "asm.bool_score as self_bool"
-      );
+        'i.*',
+        'l.id as level_id',
+        'l.level',
+        'l.description as level_desc',
+        'e.file_path',
+        'e.file_url',
+        'e.description as evid_desc'
+        'asm.status'
+      )
 
-    const indicators = mapIndicators(rows);
-    res.json({ indicators });
+
+      const indicator = mapInidcaotrs(row)
+      send(res , indicator)
   } catch (e) {
     err(res, e);
   }
@@ -214,21 +203,17 @@ exports.getEvaluationDetail = async (req, res) => {
 // ยืนยันและส่งผลการประเมิน
 exports.submitAssess = async (req, res) => {
   try {
-    const { assign_id } = req.params;
-    const uid = req.user.id;
+    const {assign_id} = req.params
+    const uid = req.user.id
 
-    const assign = await exist(res, 'assignments', {id: assign_id, evaluator_id: uid})
-      
-    const [{total}] = await db('indicators').where({ eval_id: assign.eval_id }).count('* as total')
+    const assign = await exist(res, 'assignments', {id: assign_id , evaluator_id: uid})
+
+    const [{total}] = await db('indicators').where({eval_id: assign.eval_id}).count('* as total')
     const [{done}] = await db('assessments').where({assign_id , role: 'committee'}).countDistinct('indic_id as done')
-    
-    // console.log( total)
-    if(total > done) return send(res, {msg: "กรอกตัวชี้วัดยังไม่ครบ!!"}, 403)
 
-    await db("assessments")
-      .where({ assign_id, role: "committee" })
-      .update({ status: "completed" });
-    send(res, "ok");
+    if(done < total) return send(res , {msg: "กรอกให้ครบ"}, 403)
+
+    send(res, {msg: "ok"})
   } catch (e) {
     err(res, e);
   }
